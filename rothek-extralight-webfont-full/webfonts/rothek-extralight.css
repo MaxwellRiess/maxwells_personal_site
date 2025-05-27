@@ -1,0 +1,27 @@
+/*
+Font: 		
+Style: 		
+URL: 		https://youworkforthem.com/font/T17365/rothek
+Foundry: 	Groteskly Yours Studio
+Foundry: 	https://youworkforthem.com/designer/1687/groteskly-yours-studio
+Copyright:	
+Version: 	17
+Created:	October 16, 2023
+License: 	https://www.youworkforthem.com/font-license 
+License: 	The WebFont(s) listed in this document must follow the YouWorkForThem
+			WebFont license rules. All other parties are strictly restricted 
+			from using the WebFonts(s) listed without a purchased license. 
+			All details above must always remain unaltered and visible in your CSS.
+*/
+
+@font-face {
+	font-family: 'Rothek-ExtraLight';
+	src: url('rothek-extralight.eot');
+	src: url('rothek-extralight.eot?#iefix') format('embedded-opentype'),
+             url('rothek-extralight.woff2') format('woff2'),
+	     url('rothek-extralight.woff') format('woff'),
+	     url('rothek-extralight.ttf') format('truetype'),
+	     url('rothek-extralight.svg#youworkforthem') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}

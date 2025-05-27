@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxwell Riess - Product Manager & Creative</title>
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="fonts.css">
+    <style>
+        :root {
+            --font-primary: 'Rothek', Arial, sans-serif;
+            --font-heading: 'Rothek', Arial, sans-serif;
+            --font-weight-normal: 300;
+            --font-weight-bold: 700;
+            --font-style-heading: italic;
+        }
+
+        /* Font definitions */
+        /* @font-face rules removed from here and moved to fonts.css */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: var(--font-primary);
+            font-weight: var(--font-weight-normal); /* Default to ExtraLight */
+            overflow-x: hidden;
+            background: #2f392c; /* Dark Slate Grey */
+            color: #f9fdf9;    /* Off-White */
+            line-height: 1.8;
+
+        }
+
+        /* Canvas Background */
+        #flocking-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            opacity: 0.4; /* Adjusted for darker background */
+            transition: opacity 0.3s ease; /* Fixed linter error */
+        }
+
+        /* Subtle background for blog */
+        .section.blog-active #flocking-canvas {
+            opacity: 0.1;
+        }
+
+        /* Very slow simulation for article pages */
+        .article-page #flocking-canvas {
+            opacity: 0.05;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(38, 45, 36, 0.85); /* Dark Slate Grey with alpha */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(249, 253, 249, 0.1); /* Off-White border */
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 1.5rem;
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            font-family: var(--font-primary);
+            font-weight: var(--font-weight-normal); /* Extralight for nav links, bold italic on active/hover */
+            color: #E1E6E0; /* Light Grey */
+            text-decoration: none;
+            transition: color 0.3s ease;
+            cursor: pointer;
+            position: relative; /* For the underline pseudo-element */
+            padding-bottom: 5px; /* Space for the underline */
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #FEFEFE; /* White underline */
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.45s ease-out; /* Slowed down by 50% */
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #FEFEFE; /* White */
+            font-family: var(--font-heading);
+            /* font-weight: var(--font-weight-bold); */ /* Bolding removed */
+            font-style: var(--font-style-heading);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            transform: scaleX(1);
+        }
+
+        /* Back button for articles */
+        .back-button {
+            position: fixed;
+            top: 100px;
+            left: 2rem;
+            z-index: 1000;
+            background: rgba(89, 95, 87, 0.5); /* Grey with alpha */
+            border: 1px solid rgba(249, 253, 249, 0.2); /* Off-White border */
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .back-button:hover {
+            background: rgba(89, 95, 87, 0.7); /* Darker Grey on hover */
+        }
+
+        .back-button.show {
+            display: block;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #FEFEFE; /* White */
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        main {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
+        .section {
+            display: none;
+            min-height: calc(100vh - 80px);
+            padding: 4rem 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Article pages */
+        .article-section {
+            display: none;
+            min-height: calc(100vh - 80px);
+            padding: 4rem 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .article-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .article-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(38, 45, 36, 0.6); /* Darker transparent background for readability */
+            border-radius: 12px;
+            padding: 3rem;
+            border: 1px solid rgba(89, 95, 87, 0.5); /* Subtle border */
+        }
+
+        .article-content h1, .article-content h2, .article-content h3 {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            color: #FEFEFE; /* White */
+        }
+        
+        .article-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-meta {
+            color: #595F57; /* Grey */
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(89, 95, 87, 0.5); /* Grey border */
+        }
+
+        .article-content p {
+            color: #E1E6E0; /* Light Grey */
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .article-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .article-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+
+        /* Home Section */
+        .hero {
+            text-align: center;
+            padding: 8rem 0;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #FEFEFE, #E1E6E0); /* White to Light Grey */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: #E1E6E0; /* Light Grey */
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(89, 95, 87, 0.3); /* Grey with alpha */
+            border: 1px solid rgba(89, 95, 87, 0.5); /* Grey border */
+            border-radius: 8px;
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin: 0 0.5rem;
+        }
+
+        .cta-button:hover {
+            background: rgba(89, 95, 87, 0.5); /* Darker Grey on hover */
+            transform: translateY(-2px);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: #FEFEFE; /* White */
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .card {
+            background: rgba(89, 95, 87, 0.1); /* Grey with low alpha */
+            border: 1px solid rgba(89, 95, 87, 0.2); /* Grey border */
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: rgba(89, 95, 87, 0.2); /* Darker Grey on hover */
+            transform: translateY(-4px);
+        }
+
+        .card h3 {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #FEFEFE; /* White */
+        }
+
+        .card p {
+            color: #E1E6E0; /* Light Grey */
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about-content {
+            margin-top: 2rem;
+        }
+
+        .about-content p { /* Ensure about section paragraphs also use the new color */
+            color: #E1E6E0; /* Light Grey */
+            line-height: 1.8;
+        }
+
+        /* About Section Layout Adjustments */
+        #about .content-section {
+            max-width: 800px; /* Center the block of text */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #about .section-title {
+            text-align: left; /* Align title to the left within the centered block */
+        }
+
+        /* Minimal Pottery Gallery */
+        .pottery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .pottery-item {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(89, 95, 87, 0.2); /* Subtle border for items */
+        }
+
+        .pottery-item:hover {
+            /* transform: translateY(-4px); */ /* Removed hover effect */
+            /* border: 1px solid rgba(89, 95, 87, 0.4); */ /* Removed hover effect */
+        }
+
+        .pottery-image {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px; /* Should be on item if border is on item */
+            overflow: hidden;
+        }
+
+        .pottery-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Blog Section */
+        .blog-section {
+            background: rgba(38, 45, 36, 0.4); /* Dark slate grey, more transparent */
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .blog-post {
+            background: rgba(89, 95, 87, 0.15); /* Grey with low alpha */
+            border: 1px solid rgba(89, 95, 87, 0.25); /* Grey border */
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .blog-post:hover {
+            background: rgba(89, 95, 87, 0.25); /* Darker Grey on hover */
+        }
+
+        .blog-post h3 {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #FEFEFE; /* White */
+        }
+
+        .blog-meta {
+            color: #595F57; /* Grey */
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .blog-excerpt {
+            color: #E1E6E0; /* Light Grey */
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .read-more {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .read-more:hover {
+            text-decoration: underline;
+        }
+
+        /* Contact Section */
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold); /* Making labels bold for better hierarchy */
+            font-style: var(--font-style-heading);
+            color: #E1E6E0; /* Light Grey */
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(89, 95, 87, 0.1); /* Grey with low alpha */
+            border: 1px solid rgba(89, 95, 87, 0.3); /* Grey border */
+            border-radius: 8px;
+            color: #F9FDF9; /* Off-White for input text */
+            font-family: var(--font-primary);
+            font-weight: var(--font-weight-normal);
+        }
+
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #595F57; /* Grey for placeholder text */
+            font-weight: var(--font-weight-normal);
+        }
+
+        /* Simulation Controls */
+        #simulation-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #toggle-menu-button {
+            background: rgba(89, 95, 87, 0.5); /* Grey with alpha */
+            border: 1px solid rgba(89, 95, 87, 0.7); /* Grey border */
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #FEFEFE; /* White */
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        #toggle-menu-button:hover {
+            background: rgba(89, 95, 87, 0.7); /* Darker Grey on hover */
+        }
+
+        #parameter-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(38, 45, 36, 0.95); /* Dark Slate Grey, high alpha */
+            border: 1px solid rgba(89, 95, 87, 0.5); /* Grey border */
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 10px;
+            min-width: 480px; /* Adjusted for two columns */
+            display: none; /* Should be hidden by default */
+            /* Grid styles moved to .show class */
+        }
+
+        #parameter-menu.show {
+            /* New styles for two-column layout */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem; /* Spacing between controls */
+        }
+
+        .parameter-group {
+            margin-bottom: 1rem;
+        }
+
+        .parameter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #E1E6E0; /* Light Grey */
+            font-weight: var(--font-weight-normal); /* Regular weight for labels here */
+            font-style: normal;
+        }
+
+        .parameter-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+            /* Consider styling range inputs for better theme consistency if browser defaults are jarring */
+        }
+
+        .parameter-value {
+            font-size: 0.75rem;
+            color: #595F57; /* Grey */
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(38, 45, 36, 0.95); /* Dark Slate Grey for mobile menu */
+                flex-direction: column;
+                padding: 1rem 2rem;
+                gap: 1rem;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .pottery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .back-button {
+                left: 1rem;
+                font-size: 0.875rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="flocking-canvas"></canvas>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">Maxwell Riess</a>
+            <ul class="nav-links">
+                <li><a href="#" data-section="home" class="active">Home</a></li>
+                <li><a href="#" data-section="about">About</a></li>
+                <li><a href="#" data-section="projects">Projects</a></li>
+                <li><a href="#" data-section="pottery">Pottery</a></li>
+                <li><a href="#" data-section="blog">Blog</a></li>
+                <li><a href="#" data-section="contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <a href="#" class="back-button" id="back-button">← Back to Blog</a>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="container">
+                <div class="hero">
+                    <h1>A person you might meet</h1>
+                    <p>"The Lottery is the foundation of our reality."
+                    <br>— The Babylon Lottery
+                    <br>Borges.</p>
+                    <!-- <a href="#" class="cta-button" data-section="projects">View My Work</a> -->
+                    <!-- <a href="#" class="cta-button" data-section="pottery">See My Pottery</a> -->
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <div class="content-section">
+                    <h2 class="section-title">About Me</h2>
+                    <div class="about-content">
+                        <div>
+                            <p style="margin-bottom: 1.5rem; line-height: 1.8;">
+                                I'm a Lead Product Manager at the Government Digital Service, where I focus on creating high-quality digital products and services for the public good. I believe deeply in the power of thoughtful design and technology to improve people's lives and make government services more accessible and effective.
+                            </p>
+                            <p style="margin-bottom: 1.5rem; line-height: 1.8;">
+                                I'm passionate about how new tools and technologies can be used to create a world we all want to live in. Whether it's streamlining government services, improving user experiences, or solving complex problems through digital innovation, I'm driven by the potential for technology to serve society.
+                            </p>
+                            <p style="margin-bottom: 1.5rem; line-height: 1.8;">
+                                Outside of my professional work, I'm a musician and potter. These creative pursuits keep me grounded and inspire my approach to problem-solving in the digital realm. There's something beautiful about shaping clay with your hands that mirrors the iterative process of building great products.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="section">
+            <div class="container">
+                <div class="content-section">
+                    <h2 class="section-title">Digital Products & Services</h2>
+                    <div class="grid grid-2">
+                        <div class="card">
+                            <h3>Government Service Transformation</h3>
+                            <p>Led the redesign of critical government services, improving user satisfaction by 40% and reducing processing time by 60% through user-centered design and agile development practices.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Digital Identity Platform</h3>
+                            <p>Product managed a secure, accessible digital identity solution serving millions of citizens, focusing on privacy, security, and inclusive design principles.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Citizen-Facing Portal</h3>
+                            <p>Developed a unified platform for government services, reducing the need for multiple logins and creating a seamless experience across departments.</p>
+                        </div>
+                        <div class="card">
+                            <h3>Flocking Simulation</h3>
+                            <p>A creative coding project exploring emergent behavior and complex systems - the very simulation you see in the background of this site!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pottery Section -->
+        <section id="pottery" class="section">
+            <div class="container">
+                <div class="content-section">
+                    <h2 class="section-title">Pottery</h2>
+                    <p style="text-align: center; color: #cccccc; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto; font-size: 1.2rem;">
+                        I make pottery. I'm still learning.
+                    </p>
+                    <div class="pottery-grid">
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8593.jpeg" alt="Brushstroke Bowl" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8588.jpeg" alt="Layered Glaze Bowl" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8591.jpeg" alt="Speckled Serving Bowls" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8515.jpeg" alt="Rustic Rim Bowl" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8669.jpeg" alt="Carved Character Cups" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8682.jpeg" alt="Striped Vessel Collection" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8501.jpeg" alt="Moody Speckled Bowl" loading="lazy">
+                            </div>
+                        </div>
+                        <div class="pottery-item">
+                            <div class="pottery-image">
+                                <img src="/Users/maxwellriess/Downloads/Flocking_website_claude/potteryphotos/IMG_8676.jpeg" alt="Striped Handle Mug" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section id="blog" class="section">
+            <div class="container">
+                <div class="blog-section">
+                    <h2 class="section-title">Thoughts & Insights</h2>
+                    <p style="text-align: center; color: #cccccc; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        Reflections on product management, digital transformation, and the intersection of technology and public service.
+                    </p>
+                    
+                    <div class="blog-post">
+                        <h3>Craft in an AI World: Reflections on Art, Technology, and Dimensionality</h3>
+                        <p class="blog-excerpt">In government, every digital service we design has the potential to impact millions of lives. The principles that guide us aren\'t just about good UX—they\'re about democracy, accessibility, and public trust...</p>
+                        <div class="blog-meta">
+                            <span>March 15, 2025 • 8 min read</span>
+                        </div>
+                        <a href="article1-digital-service-design.html" class="read-more">Read more →</a>
+                    </div>
+                    <div class="blog-post">
+                        <h3>Building Tools for the World We Want</h3>
+                        <p class="blog-excerpt">Technology isn\'t neutral. Every product decision we make shapes how people interact with services, institutions, and each other. As product managers, we have a responsibility to think beyond features and consider the world we\'re building...</p>
+                        <div class="blog-meta">
+                            <span>February 28, 2025 • 6 min read</span>
+                        </div>
+                        <a href="article2-building-tools.html" class="read-more">Read more →</a>
+                    </div>
+                    <div class="blog-post">
+                        <h3>Lessons from the Potter\'s Wheel</h3>
+                        <p class="blog-excerpt">Working with clay has taught me more about product management than many business books. Both require patience, iteration, and the wisdom to know when to start over...</p>
+                        <div class="blog-meta">
+                            <span>January 20, 2025 • 4 min read</span>
+                        </div>
+                        <a href="article3-lessons-from-the-potters-wheel.html" class="read-more">Read more →</a>
+                    </div>
+                     <div class="blog-post">
+                        <h3>User Research in Government: Beyond Assumptions</h3>
+                        <p class="blog-excerpt">Government services often operate on assumptions about what citizens need. But when we actually talk to users—really listen to their experiences—we discover that our solutions don\'t always match their problems...</p>
+                        <div class="blog-meta">
+                           <span>December 10, 2024 • 10 min read</span>
+                        </div>
+                        <a href="article4-user-research-in-government.html" class="read-more">Read more →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container">
+                <div class="content-section">
+                    <h2 class="section-title">Get In Touch</h2>
+                    <p style="text-align: center; color: #cccccc; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        Interested in discussing digital transformation, product strategy, or just want to chat about pottery? I'd love to hear from you.
+                    </p>
+                    <div class="contact-form">
+                        <form>
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <input type="text" id="subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" required placeholder="Tell me about your project, ask a question, or just say hello..."></textarea>
+                            </div>
+                            <button type="submit" class="cta-button" style="width: 100%;">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Simulation Controls -->
+    <div id="simulation-controls">
+        <button id="toggle-menu-button">⚙️ Controls</button>
+        <div id="parameter-menu">
+            <div class="parameter-group">
+                <label for="numBoids">Number of Boids: <span id="numBoidsValue">200</span></label>
+                <input type="range" id="numBoids" min="10" max="500" value="200">
+            </div>
+            <div class="parameter-group">
+                <label for="boidSize">Boid Size: <span id="boidSizeValue">5</span></label>
+                <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
+            </div>
+            <div class="parameter-group">
+                <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">1.5</span></label>
+                <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="1.5">
+            </div>
+            <div class="parameter-group">
+                <label for="maxForce">Max Force: <span id="maxForceValue">0.1</span></label>
+                <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
+            </div>
+            <div class="parameter-group">
+                <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
+                <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+            </div>
+            <div class="parameter-group">
+                <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
+                <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+            </div>
+            <div class="parameter-group">
+                <label for="cohesionWeight">Cohesion Weight: <span id="cohesionWeightValue">11.0</span></label>
+                <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
+            </div>
+            <div class="parameter-group">
+                <label for="separationWeight">Separation Weight: <span id="separationWeightValue">1.8</span></label>
+                <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
+            </div>
+            <div class="parameter-group">
+                <label for="alignmentWeight">Alignment Weight: <span id="alignmentWeightValue">1.5</span></label>
+                <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
+            </div>
+            <div class="parameter-group">
+                <label for="avoidanceWeight">Edge Avoidance Weight: <span id="avoidanceWeightValue">1.0</span></label>
+                <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
+            </div>
+            <div class="parameter-group" style="grid-column: span 2; text-align: center; margin-top: 1rem;">
+                <button id="youAreHereButton" class="cta-button" style="padding: 8px 16px; width: auto;">You Are Here</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let youAreHereBoid = null;
+        const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted)
+        const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
+
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-links a, .cta-button[data-section]');
+            const readMoreLinks = document.querySelectorAll('.read-more[data-article]');
+            const sections = document.querySelectorAll('.section');
+            const articleSections = document.querySelectorAll('.article-section');
+            const canvas = document.getElementById('flocking-canvas');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinksContainer = document.querySelector('.nav-links');
+            const backButton = document.getElementById('back-button');
+
+            // Mobile menu toggle
+            mobileMenuBtn.addEventListener('click', function() {
+                navLinksContainer.classList.toggle('show');
+            });
+
+            function showSection(targetSection) {
+                // Hide all sections and articles
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                articleSections.forEach(article => {
+                    article.classList.remove('active');
+                });
+
+                // Show target section
+                const target = document.getElementById(targetSection);
+                if (target) {
+                    target.classList.add('active');
+                }
+
+                // Update active nav link
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                const activeNavLink = document.querySelector(`.nav-links a[data-section="${targetSection}"]`);
+                if (activeNavLink) {
+                    activeNavLink.classList.add('active');
+                }
+
+                // Adjust simulation opacity
+                if (targetSection === 'home') {
+                    canvas.style.opacity = '0.9'; // Homepage opacity
+                } else {
+                    canvas.style.opacity = '0.2'; // Subtle opacity for all other sections
+                }
+
+                // Hide back button
+                backButton.classList.remove('show');
+                document.body.classList.remove('article-page');
+
+                // Close mobile menu
+                navLinksContainer.classList.remove('show');
+            }
+
+            function showArticle(articleId) {
+                // Hide all sections and articles
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                articleSections.forEach(article => {
+                    article.classList.remove('active');
+                });
+
+                // Show target article
+                const target = document.getElementById(articleId);
+                if (target) {
+                    target.classList.add('active');
+                }
+
+                // Clear active nav links
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+
+                // Set very slow simulation for articles
+                canvas.style.opacity = '0.1';
+                document.body.classList.add('article-page');
+                
+                // Show back button
+                backButton.classList.add('show');
+
+                // Close mobile menu
+                navLinksContainer.classList.remove('show');
+            }
+
+            // Add click listeners to navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetSection = this.getAttribute('data-section');
+                    if (targetSection) {
+                        showSection(targetSection);
+                    }
+                });
+            });
+
+            // Add click listeners to read more links
+            readMoreLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const articleId = this.getAttribute('data-article');
+                    if (articleId) {
+                        showArticle(articleId);
+                    }
+                });
+            });
+
+            // Back button functionality
+            backButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('blog');
+            });
+
+            // Initialize flocking simulation
+            initFlockingSimulation();
+
+            const youAreHereButton = document.getElementById('youAreHereButton');
+            if (youAreHereButton) {
+                youAreHereButton.addEventListener('click', () => {
+                    if (window.boids && window.boids.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * window.boids.length);
+                        youAreHereBoid = window.boids[randomIndex];
+                    }
+                });
+            }
+
+            // Smooth scroll for nav links
+            document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                        // Optionally update active nav link (if needed)
+                        updateActiveNavLink(targetId);
+                        // Close mobile menu if open
+                        if (navLinksContainer.classList.contains('show')) {
+                            navLinksContainer.classList.remove('show');
+                        }
+                    }
+                });
+            });
+        });
+
+        // Flocking Simulation Code
+        function initFlockingSimulation() {
+            const canvas = document.getElementById('flocking-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Get the font family for boids once
+            const computedStyleForBoids = getComputedStyle(document.documentElement);
+            const boidFontFamily = computedStyleForBoids.getPropertyValue('--font-heading').trim();
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class Boid {
+                constructor(x, y, vx, vy) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = vx;
+                    this.vy = vy;
+                }
+
+                draw() {
+                    const emoji = ">";
+                    const size = simulationParameters.boidSize;
+                    let boidFillStyle = defaultBoidColor;
+                    let fontWeight = ''; // Default no specific weight
+
+                    if (this === youAreHereBoid) {
+                        boidFillStyle = selectedBoidColor;
+                        fontWeight = 'bold '; // Add bold prefix for selected boid
+                    }
+
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    const angle = Math.atan2(this.vy, this.vx);
+                    ctx.rotate(angle);
+                    ctx.font = `${fontWeight}${size * 4}px ${boidFontFamily}`; /* Use computed font family and conditional bolding */
+                    ctx.fillStyle = boidFillStyle; 
+                    ctx.fillText(emoji, -size, size);
+                    ctx.restore();
+                }
+
+                update(boids) {
+                    let alignment = { x: 0, y: 0 };
+                    let cohesion = { x: 0, y: 0 };
+                    let separation = { x: 0, y: 0 };
+                    let avoidance = { x: 0, y: 0 };
+                    let count = 0;
+
+                    // Keep boids within the boundary
+                    if (this.x < simulationParameters.boundary) this.vx += simulationParameters.maxForce * 2;
+                    if (this.x > canvas.width - simulationParameters.boundary) this.vx -= simulationParameters.maxForce * 2;
+                    if (this.y < simulationParameters.boundary) this.vy += simulationParameters.maxForce * 2;
+                    if (this.y > canvas.height - simulationParameters.boundary) this.vy -= simulationParameters.maxForce * 2;
+
+                    for (const other of boids) {
+                        if (other !== this) {
+                            const d = Math.hypot(this.x - other.x, this.y - other.y);
+
+                            if (d < simulationParameters.perceptionRadius) {
+                                alignment.x += other.vx;
+                                alignment.y += other.vy;
+                                cohesion.x += other.x;
+                                cohesion.y += other.y;
+
+                                if (d < simulationParameters.avoidanceRadius) {
+                                    const forceMultiplier = (simulationParameters.avoidanceRadius - d) / simulationParameters.avoidanceRadius;
+                                    avoidance.x += (this.x - other.x) * forceMultiplier;
+                                    avoidance.y += (this.y - other.y) * forceMultiplier;
+                                }
+
+                                count++;
+                            }
+                        }
+                    }
+
+                    if (count > 0) {
+                        // Calculate average alignment, cohesion, and separation vectors
+                        alignment.x /= count;
+                        alignment.y /= count;
+                        cohesion.x = (cohesion.x / count) - this.x;
+                        cohesion.y = (cohesion.y / count) - this.y;
+                        separation.x = avoidance.x;
+                        separation.y = avoidance.y;
+
+                        const alignmentMag = Math.hypot(alignment.x, alignment.y);
+                        const cohesionMag = Math.hypot(cohesion.x, cohesion.y);
+                        const separationMag = Math.hypot(separation.x, separation.y);
+                        const avoidanceMag = Math.hypot(avoidance.x, avoidance.y);
+
+                        // Normalize and scale vectors
+                        if (alignmentMag !== 0) {
+                            alignment.x = (alignment.x / alignmentMag) * simulationParameters.maxSpeed;
+                            alignment.y = (alignment.y / alignmentMag) * simulationParameters.maxSpeed;
+                        }
+
+                        if (cohesionMag !== 0) {
+                            cohesion.x = (cohesion.x / cohesionMag) * simulationParameters.maxSpeed;
+                            cohesion.y = (cohesion.y / cohesionMag) * simulationParameters.maxSpeed;
+                        }
+
+                        if (separationMag !== 0) {
+                            separation.x = (separation.x / separationMag) * simulationParameters.maxSpeed;
+                            separation.y = (separation.y / separationMag) * simulationParameters.maxSpeed;
+                        }
+
+                        if (avoidanceMag !== 0) {
+                            avoidance.x = (avoidance.x / avoidanceMag) * simulationParameters.maxSpeed;
+                            avoidance.y = (avoidance.y / avoidanceMag) * simulationParameters.maxSpeed;
+                        }
+
+                        // Apply weights to the vectors
+                        alignment.x *= simulationParameters.alignmentWeight;
+                        alignment.y *= simulationParameters.alignmentWeight;
+                        cohesion.x *= simulationParameters.cohesionWeight;
+                        cohesion.y *= simulationParameters.cohesionWeight;
+                        separation.x *= simulationParameters.separationWeight;
+                        separation.y *= simulationParameters.separationWeight;
+                        avoidance.x *= simulationParameters.avoidanceWeight;
+                        avoidance.y *= simulationParameters.avoidanceWeight;
+
+                        // Calculate acceleration
+                        const ax = alignment.x + cohesion.x + separation.x + avoidance.x;
+                        const ay = alignment.y + cohesion.y + separation.y + avoidance.y;
+
+                        // Apply acceleration
+                        this.vx += ax * simulationParameters.maxForce;
+                        this.vy += ay * simulationParameters.maxForce;
+
+                        // Limit speed
+                        const speed = Math.hypot(this.vx, this.vy);
+                        if (speed > simulationParameters.maxSpeed) {
+                            this.vx = (this.vx / speed) * simulationParameters.maxSpeed;
+                            this.vy = (this.vy / speed) * simulationParameters.maxSpeed;
+                        }
+                    }
+
+                    // Update position
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (!simulationParameters.wrapAround) {
+                        if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                        if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+                    } else {
+                        if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
+                        if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
+                        if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
+                        if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
+                    }
+                }
+            }
+
+            const simulationParameters = {
+                numBoids: 200,
+                boidSize: 14,
+                maxSpeed: 1.3,
+                maxForce: 0.1,
+                perceptionRadius: 70,
+                avoidanceRadius: 30,
+                alignmentWeight: 4.5,
+                cohesionWeight: .1,
+                separationWeight: 1.8,
+                avoidanceWeight: 1.0,
+                boundary: 0,
+                wrapAround: true,
+            };
+
+            // Make simulationParameters available globally
+            window.simulationParameters = simulationParameters;
+
+            const boids = [];
+            window.boids = boids; // Make boids array accessible globally for the button
+
+            function initBoids() {
+                boids.length = 0;
+                for (let i = 0; i < simulationParameters.numBoids; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const vx = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
+                    const vy = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
+                    boids.push(new Boid(x, y, vx, vy));
+                }
+            }
+
+            // Make initBoids available globally
+            window.initBoids = initBoids;
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (const boid of boids) {
+                    boid.update(boids);
+                }
+
+                for (const boid of boids) {
+                    boid.draw();
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            initBoids();
+            animate();
+
+            // Parameter controls
+            const controls = [
+                'numBoids', 'boidSize', 'maxSpeed', 'maxForce', 'perceptionRadius', 'avoidanceRadius',
+                'cohesionWeight', 'separationWeight', 'alignmentWeight', 'avoidanceWeight'
+            ];
+
+            controls.forEach(control => {
+                const element = document.getElementById(control);
+                const valueElement = document.getElementById(control + 'Value');
+
+                if (element && valueElement) {
+                    // Set initial value display from simulationParameters
+                    valueElement.textContent = simulationParameters[control];
+                    element.value = simulationParameters[control];
+
+                    element.addEventListener('input', (event) => {
+                        let value;
+                        if (control === 'numBoids' || control === 'perceptionRadius' || control === 'avoidanceRadius' || control === 'boidSize') {
+                            value = parseInt(event.target.value, 10);
+                        } else {
+                            value = parseFloat(event.target.value);
+                        }
+                        
+                        valueElement.textContent = value;
+                        
+                        if (!isNaN(value)) {
+                            simulationParameters[control] = value;
+                            if (control === 'numBoids') {
+                                initBoids();
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Toggle menu
+            const toggleButton = document.getElementById('toggle-menu-button');
+            const menu = document.getElementById('parameter-menu');
+
+            if (toggleButton && menu) {
+                toggleButton.addEventListener('click', () => {
+                    menu.classList.toggle('show');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
