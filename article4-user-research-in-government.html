@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Research in Government - Maxwell Riess</title>
+    <style>
+        /* Font definitions */
+        @font-face {
+            font-family: 'Rothek';
+            src: url('rothek-extralight-webfont-full/webfonts/rothek-extralight.woff2') format('woff2'),
+                 url('rothek-extralight-webfont-full/webfonts/rothek-extralight.woff') format('woff'),
+                 url('rothek-extralight-webfont-full/webfonts/rothek-extralight.ttf') format('truetype');
+            font-weight: 300; /* ExtraLight */
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Rothek';
+            src: url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.woff2') format('woff2'),
+                 url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.woff') format('woff'),
+                 url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.ttf') format('truetype');
+            font-weight: 700; /* Bold */
+            font-style: italic;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 300; /* Default to ExtraLight */
+            overflow-x: hidden;
+            background: #262D24; /* Dark Slate Grey */
+            color: #F9FDF9;    /* Off-White */
+            line-height: 1.8;
+        }
+
+        /* Canvas Background */
+        #flocking-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            opacity: 0.05; /* Very subtle for article pages */
+            transition: opacity 0.3s ease;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(38, 45, 36, 0.85); /* Dark Slate Grey with alpha */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(249, 253, 249, 0.1); /* Off-White border */
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 1.5rem;
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 300; 
+            color: #E1E6E0; /* Light Grey */
+            text-decoration: none;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active { 
+            color: #FEFEFE; /* White */
+            font-weight: 700;
+            font-style: italic;
+        }
+        
+        .back-to-blog-link {
+            display: inline-block;
+            margin-top: 2rem;
+            margin-bottom: 1rem; 
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            color: #FEFEFE;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(89, 95, 87, 0.5);
+            border: 1px solid rgba(249, 253, 249, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-blog-link:hover {
+            background: rgba(89, 95, 87, 0.7);
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #FEFEFE; 
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content Area for Article */
+        main {
+            position: relative;
+            z-index: 10;
+            padding-top: 80px; 
+            padding-bottom: 4rem; 
+        }
+        
+        .container {
+            max-width: 1200px; 
+            margin: 0 auto;
+            padding: 0 2rem; 
+        }
+
+        .article-page-content {
+            max-width: 800px;
+            margin: 2rem auto; 
+            background: rgba(38, 45, 36, 0.6); 
+            border-radius: 12px;
+            padding: 2rem 3rem 3rem 3rem; 
+            border: 1px solid rgba(89, 95, 87, 0.5); 
+        }
+
+        .article-page-content h1, .article-page-content h2, .article-page-content h3 {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            color: #FEFEFE; 
+        }
+        
+        .article-page-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-meta {
+            color: #595F57; 
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(89, 95, 87, 0.5); 
+        }
+
+        .article-page-content p {
+            color: #E1E6E0; 
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .article-page-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .article-page-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+
+        #simulation-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #toggle-menu-button {
+            background: rgba(89, 95, 87, 0.5); 
+            border: 1px solid rgba(89, 95, 87, 0.7); 
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #FEFEFE; 
+            cursor: pointer;
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        #toggle-menu-button:hover {
+            background: rgba(89, 95, 87, 0.7); 
+        }
+
+        #parameter-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(38, 45, 36, 0.95); 
+            border: 1px solid rgba(89, 95, 87, 0.5); 
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 10px;
+            min-width: 250px;
+            display: none;
+        }
+
+        #parameter-menu.show {
+            display: block;
+        }
+
+        .parameter-group {
+            margin-bottom: 1rem;
+        }
+
+        .parameter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #E1E6E0; 
+            font-weight: 300; 
+            font-style: normal;
+        }
+
+        .parameter-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .parameter-value {
+            font-size: 0.75rem;
+            color: #595F57; 
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(38, 45, 36, 0.95); 
+                flex-direction: column;
+                padding: 1rem 2rem;
+                gap: 1rem;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .article-page-content {
+                 padding: 1.5rem;
+            }
+            .article-page-content h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="flocking-canvas"></canvas>
+    <nav>
+        <div class="nav-container">
+            <a href="flocking_personal_website.html" class="logo">Maxwell Riess</a>
+            <ul class="nav-links">
+                <li><a href="flocking_personal_website.html#home">Home</a></li>
+                <li><a href="flocking_personal_website.html#about">About</a></li>
+                <li><a href="flocking_personal_website.html#projects">Projects</a></li>
+                <li><a href="flocking_personal_website.html#pottery">Pottery</a></li>
+                <li><a href="flocking_personal_website.html#blog" class="active">Blog</a></li>
+                <li><a href="flocking_personal_website.html#contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+    <main>
+        <div class="container">
+            <a href="flocking_personal_website.html#blog" class="back-to-blog-link">← Back to Blog</a>
+            <div class="article-page-content">
+                <h1>User Research in Government: Beyond Assumptions</h1>
+                <div class="article-meta">Published on December 10, 2024 • 10 min read</div>
+                
+                <p>Government services often operate on assumptions about what citizens need. But when we actually talk to users—really listen to their experiences—we discover that our solutions don't always match their problems. Here's how we're changing that at GDS.</p>
+                
+                <p>When I first started in government digital services, I was shocked by how many decisions were made based on internal assumptions rather than actual user research. Policy teams would design services based on how they thought the process should work, rather than how citizens actually experience it.</p>
+                
+                <h2>The Assumptions We Make</h2>
+                
+                <p>Government services are built on layers of assumptions. We assume people understand government structures and know which department handles what. We assume they have the documents we require readily available. We assume they're approaching the service with the same mental model that we have.</p>
+                
+                <p>These assumptions aren't malicious—they're often the result of people who work in government everyday trying to design services for people who interact with government rarely and reluctantly.</p>
+                
+                <p>One of our most eye-opening research sessions was for a benefits application service. The policy team had designed a logical flow that matched their internal processes perfectly. But when we observed real users trying to complete the application, we discovered that our logical flow made no sense from their perspective.</p>
+                
+                <h2>Getting Out of the Building</h2>
+                
+                <p>Real user research means getting out of government offices and into the contexts where people actually use our services. We've done research in libraries, community centers, people's homes, and job centers. Each context reveals different insights.</p>
+                
+                <p>We learned that many people access government services on shared computers in public spaces, which has huge implications for privacy and security design. We learned that people often get help from friends or family members, which changed how we think about account security and verification.</p>
+                
+                <p>We also learned that the language we use—even when we think we're being plain and simple—often doesn't match how people think about their situations. The difference between "apply" and "register" might seem semantic to us, but can be confusing for users trying to figure out if they're in the right place.</p>
+                
+                <h2>Research as Policy Translation</h2>
+                
+                <p>One of the most valuable roles user research plays in government is as a translation layer between policy intent and user reality. Policies are often written in precise legal language that's necessary for implementation but terrible for user experience.</p>
+                
+                <p>Good user research helps us understand not just what the policy says, but what it means in practice for the people it affects. This often reveals disconnects between policy intent and policy impact.</p>
+                
+                <p>For example, a policy might require "proof of identity" but our research revealed that many of our users don't have the traditional forms of ID that the policy assumes. This led to policy changes that expanded acceptable forms of identity verification.</p>
+                
+                <h2>Including Excluded Voices</h2>
+                
+                <p>Traditional user research methods can inadvertently exclude the very people who most need government services. People experiencing homelessness, those with limited English, people with disabilities, or those who are simply too busy working multiple jobs to participate in our research sessions.</p>
+                
+                <p>We've had to get creative about reaching these users. We partner with community organizations, we compensate people fairly for their time, and we go to where people are rather than expecting them to come to us.</p>
+                
+                <p>We've also learned to be suspicious when our research participants all look like government employees. That's usually a sign that we're missing important perspectives.</p>
+                
+                <h2>Research as Advocacy</h2>
+                
+                <p>In government, user research becomes a form of advocacy. When we document the struggles that citizens face in accessing services, we're not just improving user experience—we're giving voice to people who are often unheard in policy discussions.</p>
+                
+                <p>Some of our most impactful research has been simple videos of people trying to use our services. Watching a single parent struggle to complete a benefits application while managing multiple children is more persuasive than any slide deck about user experience principles.</p>
+                
+                <h3>The Path Forward</h3>
+                
+                <p>The goal isn't just to make our existing services easier to use, though that's important. It's to fundamentally rethink how government services work based on citizen needs rather than internal processes.</p>
+                
+                <p>This means continuing to invest in user research, but also in organizational change that puts citizen experience at the center of how we design policies and services. It's slow work, but it's essential work.</p>
+                
+                <p>Every citizen who can successfully access the services they need is a victory for democracy itself.</p>
+            </div>
+        </div>
+    </main>
+    <div id="simulation-controls">
+        <button id="toggle-menu-button">⚙️ Controls</button>
+        <div id="parameter-menu">
+            <div class="parameter-group">
+                <label for="numBoids">Number of Boids: <span id="numBoidsValue">75</span></label>
+                <input type="range" id="numBoids" min="10" max="500" value="75">
+            </div>
+            <div class="parameter-group">
+                <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">0.3</span></label>
+                <input type="range" id="maxSpeed" min="0.1" max="5" step="0.1" value="0.3">
+            </div>
+            <div class="parameter-group">
+                <label for="maxForce">Max Force: <span id="maxForceValue">0.05</span></label>
+                <input type="range" id="maxForce" min="0.01" max="1" step="0.01" value="0.05">
+            </div>
+            <div class="parameter-group">
+                <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
+                <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+            </div>
+            <div class="parameter-group">
+                <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
+                <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinksContainer = document.querySelector('.nav-links');
+            if (mobileMenuBtn && navLinksContainer) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    navLinksContainer.classList.toggle('show');
+                });
+            }
+            initFlockingSimulation();
+            const toggleButton = document.getElementById('toggle-menu-button');
+            const menu = document.getElementById('parameter-menu');
+            if (toggleButton && menu) {
+                toggleButton.addEventListener('click', () => {
+                    menu.classList.toggle('show');
+                });
+            }
+        });
+        function initFlockingSimulation() {
+            const canvas = document.getElementById('flocking-canvas');
+            const ctx = canvas.getContext('2d');
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            class Boid {
+                constructor(x, y, vx, vy) {
+                    this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+                }
+                draw() {
+                    const emoji = ">";
+                    const size = simulationParameters.boidSize;
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    const angle = Math.atan2(this.vy, this.vx);
+                    ctx.rotate(angle);
+                    ctx.font = `${size * 4}px 'Rothek', Arial, sans-serif`;
+                    ctx.fillStyle = 'rgba(249, 253, 249, 0.7)'; 
+                    ctx.fillText(emoji, -size, size);
+                    ctx.restore();
+                }
+                update(boids) {
+                    let alignment = { x: 0, y: 0 }, cohesion = { x: 0, y: 0 }, separation = { x: 0, y: 0 }, avoidance = { x: 0, y: 0 };
+                    let count = 0;
+                    if (this.x < simulationParameters.boundary) this.vx += simulationParameters.maxForce * 2;
+                    if (this.x > canvas.width - simulationParameters.boundary) this.vx -= simulationParameters.maxForce * 2;
+                    if (this.y < simulationParameters.boundary) this.vy += simulationParameters.maxForce * 2;
+                    if (this.y > canvas.height - simulationParameters.boundary) this.vy -= simulationParameters.maxForce * 2;
+                    for (const other of boids) {
+                        if (other !== this) {
+                            const d = Math.hypot(this.x - other.x, this.y - other.y);
+                            if (d < simulationParameters.perceptionRadius) {
+                                alignment.x += other.vx; alignment.y += other.vy;
+                                cohesion.x += other.x; cohesion.y += other.y;
+                                if (d < simulationParameters.avoidanceRadius) {
+                                    const forceMultiplier = (simulationParameters.avoidanceRadius - d) / simulationParameters.avoidanceRadius;
+                                    avoidance.x += (this.x - other.x) * forceMultiplier;
+                                    avoidance.y += (this.y - other.y) * forceMultiplier;
+                                }
+                                count++;
+                            }
+                        }
+                    }
+                    if (count > 0) {
+                        alignment.x /= count; alignment.y /= count;
+                        cohesion.x = (cohesion.x / count) - this.x; cohesion.y = (cohesion.y / count) - this.y;
+                        separation.x = avoidance.x; separation.y = avoidance.y;
+                        const alignmentMag = Math.hypot(alignment.x, alignment.y), cohesionMag = Math.hypot(cohesion.x, cohesion.y), separationMag = Math.hypot(separation.x, separation.y), avoidanceMag = Math.hypot(avoidance.x, avoidance.y);
+                        if (alignmentMag !== 0) { alignment.x = (alignment.x / alignmentMag) * simulationParameters.maxSpeed; alignment.y = (alignment.y / alignmentMag) * simulationParameters.maxSpeed; }
+                        if (cohesionMag !== 0) { cohesion.x = (cohesion.x / cohesionMag) * simulationParameters.maxSpeed; cohesion.y = (cohesion.y / cohesionMag) * simulationParameters.maxSpeed; }
+                        if (separationMag !== 0) { separation.x = (separation.x / separationMag) * simulationParameters.maxSpeed; separation.y = (separation.y / separationMag) * simulationParameters.maxSpeed; }
+                        if (avoidanceMag !== 0) { avoidance.x = (avoidance.x / avoidanceMag) * simulationParameters.maxSpeed; avoidance.y = (avoidance.y / avoidanceMag) * simulationParameters.maxSpeed; }
+                        alignment.x *= simulationParameters.alignmentWeight; alignment.y *= simulationParameters.alignmentWeight;
+                        cohesion.x *= simulationParameters.cohesionWeight; cohesion.y *= simulationParameters.cohesionWeight;
+                        separation.x *= simulationParameters.separationWeight; separation.y *= simulationParameters.separationWeight;
+                        avoidance.x *= simulationParameters.avoidanceWeight; avoidance.y *= simulationParameters.avoidanceWeight;
+                        const ax = alignment.x + cohesion.x + separation.x + avoidance.x, ay = alignment.y + cohesion.y + separation.y + avoidance.y;
+                        this.vx += ax * simulationParameters.maxForce; this.vy += ay * simulationParameters.maxForce;
+                        const speed = Math.hypot(this.vx, this.vy);
+                        if (speed > simulationParameters.maxSpeed) { this.vx = (this.vx / speed) * simulationParameters.maxSpeed; this.vy = (this.vy / speed) * simulationParameters.maxSpeed; }
+                    }
+                    this.x += this.vx; this.y += this.vy;
+                    if (!simulationParameters.wrapAround) {
+                        if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                        if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+                    } else {
+                        if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
+                        if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
+                        if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
+                        if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
+                    }
+                }
+            }
+            const simulationParameters = {
+                numBoids: parseInt(document.getElementById('numBoids').value, 10) || 75,
+                boidSize: 5,
+                maxSpeed: parseFloat(document.getElementById('maxSpeed').value) || 0.3,
+                maxForce: parseFloat(document.getElementById('maxForce').value) || 0.05,
+                perceptionRadius: parseInt(document.getElementById('perceptionRadius').value, 10) || 17,
+                avoidanceRadius: parseInt(document.getElementById('avoidanceRadius').value, 10) || 20,
+                alignmentWeight: 15, cohesionWeight: 11, separationWeight: 10, avoidanceWeight: 1, boundary: 0, wrapAround: true,
+            };
+            window.simulationParameters = simulationParameters;
+            const boids = [];
+            window.initBoids = function() {
+                boids.length = 0;
+                for (let i = 0; i < simulationParameters.numBoids; i++) {
+                    const x = Math.random() * canvas.width, y = Math.random() * canvas.height;
+                    const vx = (Math.random() * 2 - 1) * simulationParameters.maxSpeed, vy = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
+                    boids.push(new Boid(x, y, vx, vy));
+                }
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const boid of boids) { boid.update(boids); }
+                for (const boid of boids) { boid.draw(); }
+                requestAnimationFrame(animate);
+            }
+            initBoids();
+            animate();
+            const controls = ['numBoids', 'maxSpeed', 'maxForce', 'perceptionRadius', 'avoidanceRadius'];
+            controls.forEach(control => {
+                const element = document.getElementById(control);
+                const valueElement = document.getElementById(control + 'Value');
+                if (element && valueElement) {
+                    element.addEventListener('input', (event) => {
+                        const value = control === 'numBoids' || control === 'perceptionRadius' || control === 'avoidanceRadius' ? parseInt(event.target.value, 10) : parseFloat(event.target.value);
+                        valueElement.textContent = value;
+                        if (!isNaN(value)) {
+                            simulationParameters[control] = value;
+                            if (control === 'numBoids') { initBoids(); }
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

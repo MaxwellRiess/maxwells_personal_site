@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lessons from the Potter's Wheel - Maxwell Riess</title>
+    <style>
+        /* Font definitions */
+        @font-face {
+            font-family: 'Rothek';
+            src: url('rothek-extralight-webfont-full/webfonts/rothek-extralight.woff2') format('woff2'),
+                 url('rothek-extralight-webfont-full/webfonts/rothek-extralight.woff') format('woff'),
+                 url('rothek-extralight-webfont-full/webfonts/rothek-extralight.ttf') format('truetype');
+            font-weight: 300; /* ExtraLight */
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Rothek';
+            src: url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.woff2') format('woff2'),
+                 url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.woff') format('woff'),
+                 url('rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.ttf') format('truetype');
+            font-weight: 700; /* Bold */
+            font-style: italic;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 300; /* Default to ExtraLight */
+            overflow-x: hidden;
+            background: #262D24; /* Dark Slate Grey */
+            color: #F9FDF9;    /* Off-White */
+            line-height: 1.8;
+        }
+
+        /* Canvas Background */
+        #flocking-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            opacity: 0.05; /* Very subtle for article pages */
+            transition: opacity 0.3s ease;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(38, 45, 36, 0.85); /* Dark Slate Grey with alpha */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(249, 253, 249, 0.1); /* Off-White border */
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 1.5rem;
+            color: #FEFEFE; /* White */
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 300; 
+            color: #E1E6E0; /* Light Grey */
+            text-decoration: none;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active { 
+            color: #FEFEFE; /* White */
+            font-weight: 700;
+            font-style: italic;
+        }
+        
+        .back-to-blog-link {
+            display: inline-block;
+            margin-top: 2rem;
+            margin-bottom: 1rem; 
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            color: #FEFEFE;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(89, 95, 87, 0.5);
+            border: 1px solid rgba(249, 253, 249, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-blog-link:hover {
+            background: rgba(89, 95, 87, 0.7);
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #FEFEFE; 
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content Area for Article */
+        main {
+            position: relative;
+            z-index: 10;
+            padding-top: 80px; 
+            padding-bottom: 4rem; 
+        }
+        
+        .container {
+            max-width: 1200px; 
+            margin: 0 auto;
+            padding: 0 2rem; 
+        }
+
+        .article-page-content {
+            max-width: 800px;
+            margin: 2rem auto; 
+            background: rgba(38, 45, 36, 0.6); 
+            border-radius: 12px;
+            padding: 2rem 3rem 3rem 3rem; 
+            border: 1px solid rgba(89, 95, 87, 0.5); 
+        }
+
+        .article-page-content h1, .article-page-content h2, .article-page-content h3 {
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            color: #FEFEFE; 
+        }
+        
+        .article-page-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-meta {
+            color: #595F57; 
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(89, 95, 87, 0.5); 
+        }
+
+        .article-page-content p {
+            color: #E1E6E0; 
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .article-page-content h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .article-page-content h3 {
+            font-size: 1.4rem;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+
+        #simulation-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #toggle-menu-button {
+            background: rgba(89, 95, 87, 0.5); 
+            border: 1px solid rgba(89, 95, 87, 0.7); 
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #FEFEFE; 
+            cursor: pointer;
+            font-family: 'Rothek', Arial, sans-serif;
+            font-weight: 700;
+            font-style: italic;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        #toggle-menu-button:hover {
+            background: rgba(89, 95, 87, 0.7); 
+        }
+
+        #parameter-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: rgba(38, 45, 36, 0.95); 
+            border: 1px solid rgba(89, 95, 87, 0.5); 
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 10px;
+            min-width: 250px;
+            display: none;
+        }
+
+        #parameter-menu.show {
+            display: block;
+        }
+
+        .parameter-group {
+            margin-bottom: 1rem;
+        }
+
+        .parameter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #E1E6E0; 
+            font-weight: 300; 
+            font-style: normal;
+        }
+
+        .parameter-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+
+        .parameter-value {
+            font-size: 0.75rem;
+            color: #595F57; 
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(38, 45, 36, 0.95); 
+                flex-direction: column;
+                padding: 1rem 2rem;
+                gap: 1rem;
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .article-page-content {
+                 padding: 1.5rem;
+            }
+            .article-page-content h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="flocking-canvas"></canvas>
+    <nav>
+        <div class="nav-container">
+            <a href="flocking_personal_website.html" class="logo">Maxwell Riess</a>
+            <ul class="nav-links">
+                <li><a href="flocking_personal_website.html#home">Home</a></li>
+                <li><a href="flocking_personal_website.html#about">About</a></li>
+                <li><a href="flocking_personal_website.html#projects">Projects</a></li>
+                <li><a href="flocking_personal_website.html#pottery">Pottery</a></li>
+                <li><a href="flocking_personal_website.html#blog" class="active">Blog</a></li>
+                <li><a href="flocking_personal_website.html#contact">Contact</a></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+    <main>
+        <div class="container">
+            <a href="flocking_personal_website.html#blog" class="back-to-blog-link">← Back to Blog</a>
+            <div class="article-page-content">
+                <h1>Lessons from the Potter's Wheel</h1>
+                <div class="article-meta">Published on January 20, 2025 • 4 min read</div>
+                
+                <p>Working with clay has taught me more about product management than many business books. Both require patience, iteration, and the wisdom to know when to start over. Here are five principles I've learned at the pottery wheel that apply to building digital products.</p>
+                
+                <h2>1. Start with the Center</h2>
+                
+                <p>The first and most crucial step in throwing pottery is centering the clay. If the clay isn't properly centered, everything that follows will be wobbly and unstable. No amount of skill in later steps can compensate for poor centering.</p>
+                
+                <p>In product management, centering means getting clear on your core user need and value proposition. If you're not clear on what problem you're solving and for whom, all your features and improvements will feel unstable and disconnected.</p>
+                
+                <p>I've seen teams spend months building sophisticated features for products that were never properly centered on a real user need. Like off-center clay, these products wobble no matter how much effort you put into them.</p>
+                
+                <h2>2. Work with the Material, Not Against It</h2>
+                
+                <p>Clay has its own properties and limitations. Experienced potters learn to work with these characteristics rather than fighting them. Different clays behave differently, and what works for one piece might not work for another.</p>
+                
+                <p>Similarly, every organization, team, and technical platform has its own characteristics. Great product managers learn to work with these constraints rather than against them. Instead of forcing solutions that don't fit the organizational context, they find approaches that leverage existing strengths and work around limitations.</p>
+                
+                <h2>3. Embrace Imperfection</h2>
+                
+                <p>In pottery, slight asymmetries and variations are often what make a piece beautiful and unique. Perfect uniformity can feel cold and mechanical. The Japanese concept of wabi-sabi celebrates these imperfections as part of the beauty.</p>
+                
+                <p>In product development, we often get caught up in trying to perfect every detail before shipping. But sometimes the quirks and rough edges are what make a product feel human and authentic. The key is knowing which imperfections add character and which ones create genuine problems for users.</p>
+                
+                <h2>4. Know When to Start Over</h2>
+                
+                <p>Sometimes, despite your best efforts, a piece just isn't working. Maybe the clay collapsed, or the proportions are completely wrong. Experienced potters know when to wedge the clay back up and start fresh rather than trying to salvage something that's fundamentally flawed.</p>
+                
+                <p>This is one of the hardest lessons in product management: knowing when to kill a feature or even an entire product that isn't working. The sunk cost fallacy is powerful, but sometimes the best path forward is to take what you've learned and start over with a cleaner approach.</p>
+                
+                <h2>5. The Process is the Product</h2>
+                
+                <p>In pottery, the act of making is often as important as the final piece. The meditative quality of working with clay, the physical engagement with the material, the quiet focus required—these are all part of the value, not just means to an end.</p>
+                
+                <p>In product management, how we work together as teams matters enormously. The processes we create, the relationships we build, the culture we foster—these are all products of our work, not just the software we ship.</p>
+                
+                <h3>Finding Balance</h3>
+                
+                <p>Both pottery and product management require a balance between planning and improvisation, between control and letting go, between persistence and knowing when to pivot. They're both fundamentally about shaping something useful and beautiful from raw materials.</p>
+                
+                <p>The next time you're stuck on a product challenge, try spending some time working with your hands. You might be surprised what insights emerge when you step away from the screen and engage with the physical world.</p>
+            </div>
+        </div>
+    </main>
+    <div id="simulation-controls">
+        <button id="toggle-menu-button">⚙️ Controls</button>
+        <div id="parameter-menu">
+            <div class="parameter-group">
+                <label for="numBoids">Number of Boids: <span id="numBoidsValue">75</span></label>
+                <input type="range" id="numBoids" min="10" max="500" value="75">
+            </div>
+            <div class="parameter-group">
+                <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">0.3</span></label>
+                <input type="range" id="maxSpeed" min="0.1" max="5" step="0.1" value="0.3">
+            </div>
+            <div class="parameter-group">
+                <label for="maxForce">Max Force: <span id="maxForceValue">0.05</span></label>
+                <input type="range" id="maxForce" min="0.01" max="1" step="0.01" value="0.05">
+            </div>
+            <div class="parameter-group">
+                <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
+                <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+            </div>
+            <div class="parameter-group">
+                <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
+                <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinksContainer = document.querySelector('.nav-links');
+            if (mobileMenuBtn && navLinksContainer) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    navLinksContainer.classList.toggle('show');
+                });
+            }
+            initFlockingSimulation();
+            const toggleButton = document.getElementById('toggle-menu-button');
+            const menu = document.getElementById('parameter-menu');
+            if (toggleButton && menu) {
+                toggleButton.addEventListener('click', () => {
+                    menu.classList.toggle('show');
+                });
+            }
+        });
+        function initFlockingSimulation() {
+            const canvas = document.getElementById('flocking-canvas');
+            const ctx = canvas.getContext('2d');
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            class Boid {
+                constructor(x, y, vx, vy) {
+                    this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+                }
+                draw() {
+                    const emoji = ">";
+                    const size = simulationParameters.boidSize;
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    const angle = Math.atan2(this.vy, this.vx);
+                    ctx.rotate(angle);
+                    ctx.font = `${size * 4}px 'Rothek', Arial, sans-serif`;
+                    ctx.fillStyle = 'rgba(249, 253, 249, 0.7)'; 
+                    ctx.fillText(emoji, -size, size);
+                    ctx.restore();
+                }
+                update(boids) {
+                    let alignment = { x: 0, y: 0 }, cohesion = { x: 0, y: 0 }, separation = { x: 0, y: 0 }, avoidance = { x: 0, y: 0 };
+                    let count = 0;
+                    if (this.x < simulationParameters.boundary) this.vx += simulationParameters.maxForce * 2;
+                    if (this.x > canvas.width - simulationParameters.boundary) this.vx -= simulationParameters.maxForce * 2;
+                    if (this.y < simulationParameters.boundary) this.vy += simulationParameters.maxForce * 2;
+                    if (this.y > canvas.height - simulationParameters.boundary) this.vy -= simulationParameters.maxForce * 2;
+                    for (const other of boids) {
+                        if (other !== this) {
+                            const d = Math.hypot(this.x - other.x, this.y - other.y);
+                            if (d < simulationParameters.perceptionRadius) {
+                                alignment.x += other.vx; alignment.y += other.vy;
+                                cohesion.x += other.x; cohesion.y += other.y;
+                                if (d < simulationParameters.avoidanceRadius) {
+                                    const forceMultiplier = (simulationParameters.avoidanceRadius - d) / simulationParameters.avoidanceRadius;
+                                    avoidance.x += (this.x - other.x) * forceMultiplier;
+                                    avoidance.y += (this.y - other.y) * forceMultiplier;
+                                }
+                                count++;
+                            }
+                        }
+                    }
+                    if (count > 0) {
+                        alignment.x /= count; alignment.y /= count;
+                        cohesion.x = (cohesion.x / count) - this.x; cohesion.y = (cohesion.y / count) - this.y;
+                        separation.x = avoidance.x; separation.y = avoidance.y;
+                        const alignmentMag = Math.hypot(alignment.x, alignment.y), cohesionMag = Math.hypot(cohesion.x, cohesion.y), separationMag = Math.hypot(separation.x, separation.y), avoidanceMag = Math.hypot(avoidance.x, avoidance.y);
+                        if (alignmentMag !== 0) { alignment.x = (alignment.x / alignmentMag) * simulationParameters.maxSpeed; alignment.y = (alignment.y / alignmentMag) * simulationParameters.maxSpeed; }
+                        if (cohesionMag !== 0) { cohesion.x = (cohesion.x / cohesionMag) * simulationParameters.maxSpeed; cohesion.y = (cohesion.y / cohesionMag) * simulationParameters.maxSpeed; }
+                        if (separationMag !== 0) { separation.x = (separation.x / separationMag) * simulationParameters.maxSpeed; separation.y = (separation.y / separationMag) * simulationParameters.maxSpeed; }
+                        if (avoidanceMag !== 0) { avoidance.x = (avoidance.x / avoidanceMag) * simulationParameters.maxSpeed; avoidance.y = (avoidance.y / avoidanceMag) * simulationParameters.maxSpeed; }
+                        alignment.x *= simulationParameters.alignmentWeight; alignment.y *= simulationParameters.alignmentWeight;
+                        cohesion.x *= simulationParameters.cohesionWeight; cohesion.y *= simulationParameters.cohesionWeight;
+                        separation.x *= simulationParameters.separationWeight; separation.y *= simulationParameters.separationWeight;
+                        avoidance.x *= simulationParameters.avoidanceWeight; avoidance.y *= simulationParameters.avoidanceWeight;
+                        const ax = alignment.x + cohesion.x + separation.x + avoidance.x, ay = alignment.y + cohesion.y + separation.y + avoidance.y;
+                        this.vx += ax * simulationParameters.maxForce; this.vy += ay * simulationParameters.maxForce;
+                        const speed = Math.hypot(this.vx, this.vy);
+                        if (speed > simulationParameters.maxSpeed) { this.vx = (this.vx / speed) * simulationParameters.maxSpeed; this.vy = (this.vy / speed) * simulationParameters.maxSpeed; }
+                    }
+                    this.x += this.vx; this.y += this.vy;
+                    if (!simulationParameters.wrapAround) {
+                        if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                        if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+                    } else {
+                        if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
+                        if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
+                        if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
+                        if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
+                    }
+                }
+            }
+            const simulationParameters = {
+                numBoids: parseInt(document.getElementById('numBoids').value, 10) || 75,
+                boidSize: 5,
+                maxSpeed: parseFloat(document.getElementById('maxSpeed').value) || 0.3,
+                maxForce: parseFloat(document.getElementById('maxForce').value) || 0.05,
+                perceptionRadius: parseInt(document.getElementById('perceptionRadius').value, 10) || 17,
+                avoidanceRadius: parseInt(document.getElementById('avoidanceRadius').value, 10) || 20,
+                alignmentWeight: 15, cohesionWeight: 11, separationWeight: 10, avoidanceWeight: 1, boundary: 0, wrapAround: true,
+            };
+            window.simulationParameters = simulationParameters;
+            const boids = [];
+            window.initBoids = function() {
+                boids.length = 0;
+                for (let i = 0; i < simulationParameters.numBoids; i++) {
+                    const x = Math.random() * canvas.width, y = Math.random() * canvas.height;
+                    const vx = (Math.random() * 2 - 1) * simulationParameters.maxSpeed, vy = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
+                    boids.push(new Boid(x, y, vx, vy));
+                }
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const boid of boids) { boid.update(boids); }
+                for (const boid of boids) { boid.draw(); }
+                requestAnimationFrame(animate);
+            }
+            initBoids();
+            animate();
+            const controls = ['numBoids', 'maxSpeed', 'maxForce', 'perceptionRadius', 'avoidanceRadius'];
+            controls.forEach(control => {
+                const element = document.getElementById(control);
+                const valueElement = document.getElementById(control + 'Value');
+                if (element && valueElement) {
+                    element.addEventListener('input', (event) => {
+                        const value = control === 'numBoids' || control === 'perceptionRadius' || control === 'avoidanceRadius' ? parseInt(event.target.value, 10) : parseFloat(event.target.value);
+                        valueElement.textContent = value;
+                        if (!isNaN(value)) {
+                            simulationParameters[control] = value;
+                            if (control === 'numBoids') { initBoids(); }
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html> 
