@@ -542,18 +542,56 @@
             background: rgba(38, 45, 36, 0.95); /* Dark Slate Grey, high alpha */
             border: 1px solid rgba(89, 95, 87, 0.5); /* Grey border */
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1rem;
             margin-bottom: 10px;
-            min-width: 480px; /* Adjusted for two columns */
-            display: none; /* Should be hidden by default */
-            /* Grid styles moved to .show class */
+            min-width: 320px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
         }
 
         #parameter-menu.show {
-            /* New styles for two-column layout */
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem; /* Spacing between controls */
+            display: block;
+        }
+
+        .parameter-categories {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            background: rgba(89, 95, 87, 0.3);
+            border: 1px solid rgba(89, 95, 87, 0.5);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #E1E6E0;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .category-tab:hover {
+            background: rgba(89, 95, 87, 0.5);
+        }
+
+        .category-tab.active {
+            background: rgba(89, 95, 87, 0.7);
+            border-color: rgba(89, 95, 87, 0.8);
+        }
+
+        .parameter-category {
+            display: none;
+        }
+
+        .parameter-category.active {
+            display: block;
         }
 
         .parameter-group {
@@ -624,6 +662,47 @@
                 left: 1rem;
                 font-size: 0.875rem;
                 padding: 6px 12px;
+            }
+
+            /* Mobile simulation controls */
+            #simulation-controls {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+            }
+
+            #toggle-menu-button {
+                width: 100%;
+                text-align: center;
+            }
+
+            #parameter-menu {
+                position: fixed;
+                bottom: 60px;
+                left: 10px;
+                right: 10px;
+                width: auto;
+                min-width: auto;
+                max-height: 70vh;
+            }
+
+            .parameter-categories {
+                gap: 0.25rem;
+            }
+
+            .category-tab {
+                font-size: 1rem;
+                padding: 6px 8px;
+                min-width: 50px;
+            }
+
+            .parameter-group label {
+                font-size: 0.8rem;
+            }
+
+            .parameter-group input[type="range"] {
+                height: 32px;
             }
         }
     </style>
@@ -849,47 +928,66 @@
     <div id="simulation-controls">
         <button id="toggle-menu-button">⚙️ Controls</button>
         <div id="parameter-menu">
-            <div class="parameter-group">
-                <label for="numBoids">Number of Boids: <span id="numBoidsValue">200</span></label>
-                <input type="range" id="numBoids" min="10" max="500" value="200">
+            <div class="parameter-categories">
+                <div class="category-tab active" data-category="population">🔢</div>
+                <div class="category-tab" data-category="movement">⚡</div>
+                <div class="category-tab" data-category="perception">👁️</div>
+                <div class="category-tab" data-category="behavior">🤝</div>
             </div>
-            <div class="parameter-group">
-                <label for="boidSize">Boid Size: <span id="boidSizeValue">5</span></label>
-                <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
+
+            <div class="parameter-category active" data-category="population">
+                <div class="parameter-group">
+                    <label for="numBoids">Number of Boids: <span id="numBoidsValue">200</span></label>
+                    <input type="range" id="numBoids" min="10" max="500" value="200">
+                </div>
+                <div class="parameter-group">
+                    <label for="boidSize">Boid Size: <span id="boidSizeValue">5</span></label>
+                    <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
+                </div>
             </div>
-            <div class="parameter-group">
-                <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">1.5</span></label>
-                <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="1.5">
+
+            <div class="parameter-category" data-category="movement">
+                <div class="parameter-group">
+                    <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">1.5</span></label>
+                    <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="1.5">
+                </div>
+                <div class="parameter-group">
+                    <label for="maxForce">Max Force: <span id="maxForceValue">0.1</span></label>
+                    <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
+                </div>
             </div>
-            <div class="parameter-group">
-                <label for="maxForce">Max Force: <span id="maxForceValue">0.1</span></label>
-                <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
+
+            <div class="parameter-category" data-category="perception">
+                <div class="parameter-group">
+                    <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
+                    <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+                </div>
+                <div class="parameter-group">
+                    <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
+                    <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+                </div>
             </div>
-            <div class="parameter-group">
-                <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
-                <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+
+            <div class="parameter-category" data-category="behavior">
+                <div class="parameter-group">
+                    <label for="cohesionWeight">Cohesion Weight: <span id="cohesionWeightValue">11.0</span></label>
+                    <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
+                </div>
+                <div class="parameter-group">
+                    <label for="separationWeight">Separation Weight: <span id="separationWeightValue">1.8</span></label>
+                    <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
+                </div>
+                <div class="parameter-group">
+                    <label for="alignmentWeight">Alignment Weight: <span id="alignmentWeightValue">1.5</span></label>
+                    <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
+                </div>
+                <div class="parameter-group">
+                    <label for="avoidanceWeight">Edge Avoidance Weight: <span id="avoidanceWeightValue">1.0</span></label>
+                    <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
+                </div>
             </div>
-            <div class="parameter-group">
-                <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
-                <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
-            </div>
-            <div class="parameter-group">
-                <label for="cohesionWeight">Cohesion Weight: <span id="cohesionWeightValue">11.0</span></label>
-                <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
-            </div>
-            <div class="parameter-group">
-                <label for="separationWeight">Separation Weight: <span id="separationWeightValue">1.8</span></label>
-                <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
-            </div>
-            <div class="parameter-group">
-                <label for="alignmentWeight">Alignment Weight: <span id="alignmentWeightValue">1.5</span></label>
-                <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
-            </div>
-            <div class="parameter-group">
-                <label for="avoidanceWeight">Edge Avoidance Weight: <span id="avoidanceWeightValue">1.0</span></label>
-                <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
-            </div>
-            <div class="parameter-group" style="grid-column: span 2; text-align: center; margin-top: 1rem;">
+
+            <div class="parameter-group" style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(89, 95, 87, 0.3);">
                 <button id="youAreHereButton" class="cta-button" style="padding: 8px 16px; width: auto;">You Are Here</button>
             </div>
         </div>
@@ -1300,6 +1398,27 @@
                     menu.classList.toggle('show');
                 });
             }
+
+            // Category navigation
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            const parameterCategories = document.querySelectorAll('.parameter-category');
+
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetCategory = tab.getAttribute('data-category');
+                    
+                    // Remove active class from all tabs and categories
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    parameterCategories.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding category
+                    tab.classList.add('active');
+                    const targetCategoryElement = document.querySelector(`.parameter-category[data-category="${targetCategory}"]`);
+                    if (targetCategoryElement) {
+                        targetCategoryElement.classList.add('active');
+                    }
+                });
+            });
         }
     </script>
 </body>
