@@ -346,8 +346,33 @@
             }
 
             .parameter-group input[type="range"] {
-                height: 48px;
+                height: 72px;
                 margin-bottom: 0.5rem;
+                -webkit-appearance: none;
+                appearance: none;
+                background: rgba(89, 95, 87, 0.3);
+                border-radius: 36px;
+                outline: none;
+            }
+
+            .parameter-group input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 36px;
+                height: 36px;
+                background: #E1E6E0;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid rgba(89, 95, 87, 0.7);
+            }
+
+            .parameter-group input[type="range"]::-moz-range-thumb {
+                width: 36px;
+                height: 36px;
+                background: #E1E6E0;
+                border-radius: 50%;
+                cursor: pointer;
+                border: 2px solid rgba(89, 95, 87, 0.7);
             }
 
             .parameter-value {
