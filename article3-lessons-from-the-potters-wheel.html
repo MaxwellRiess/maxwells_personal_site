@@ -87,7 +87,7 @@
 
         .nav-links a {
             font-family: 'Rothek', Arial, sans-serif;
-            font-weight: 300; 
+            font-weight: 300;
             color: #E1E6E0; /* Light Grey */
             text-decoration: none;
             transition: color 0.3s ease;
@@ -95,16 +95,16 @@
         }
 
         .nav-links a:hover,
-        .nav-links a.active { 
+        .nav-links a.active { /* Active state might be different for article pages or not needed */
             color: #FEFEFE; /* White */
             font-weight: 700;
             font-style: italic;
         }
-        
+
         .back-to-blog-link {
             display: inline-block;
             margin-top: 2rem;
-            margin-bottom: 1rem; 
+            margin-bottom: 1rem; /* Space before main article content */
             font-family: 'Rothek', Arial, sans-serif;
             font-weight: 700;
             font-style: italic;
@@ -126,7 +126,7 @@
             display: none;
             background: none;
             border: none;
-            color: #FEFEFE; 
+            color: #FEFEFE; /* White */
             font-size: 1.5rem;
             cursor: pointer;
         }
@@ -135,52 +135,52 @@
         main {
             position: relative;
             z-index: 10;
-            padding-top: 80px; 
-            padding-bottom: 4rem; 
+            padding-top: 80px; /* Space for fixed nav */
+            padding-bottom: 4rem; /* Footer space */
         }
-        
+
         .container {
-            max-width: 1200px; 
+            max-width: 1200px; /* General container for centering */
             margin: 0 auto;
-            padding: 0 2rem; 
+            padding: 0 2rem; /* Side padding */
         }
 
         .article-page-content {
             max-width: 800px;
-            margin: 2rem auto; 
-            background: rgba(38, 45, 36, 0.6); 
+            margin: 2rem auto; /* Centering the article block */
+            background: rgba(38, 45, 36, 0.6);
             border-radius: 12px;
-            padding: 2rem 3rem 3rem 3rem; 
-            border: 1px solid rgba(89, 95, 87, 0.5); 
+            padding: 2rem 3rem 3rem 3rem; /* More padding for article */
+            border: 1px solid rgba(89, 95, 87, 0.5);
         }
 
         .article-page-content h1, .article-page-content h2, .article-page-content h3 {
             font-family: 'Rothek', Arial, sans-serif;
             font-weight: 700;
             font-style: italic;
-            color: #FEFEFE; 
+            color: #FEFEFE;
         }
-        
+
         .article-page-content h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
         }
 
         .article-meta {
-            color: #595F57; 
+            color: #595F57;
             font-size: 0.9rem;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(89, 95, 87, 0.5); 
+            border-bottom: 1px solid rgba(89, 95, 87, 0.5);
         }
 
         .article-page-content p {
-            color: #E1E6E0; 
+            color: #E1E6E0;
             line-height: 1.8;
             margin-bottom: 1.5rem;
             font-size: 1.1rem;
         }
-        
+
         .article-page-content h2 {
             font-size: 1.8rem;
             margin: 2rem 0 1rem 0;
@@ -191,6 +191,7 @@
             margin: 1.5rem 0 0.5rem 0;
         }
 
+        /* Simulation Controls */
         #simulation-controls {
             position: fixed;
             bottom: 20px;
@@ -199,11 +200,11 @@
         }
 
         #toggle-menu-button {
-            background: rgba(89, 95, 87, 0.5); 
-            border: 1px solid rgba(89, 95, 87, 0.7); 
+            background: rgba(89, 95, 87, 0.5);
+            border: 1px solid rgba(89, 95, 87, 0.7);
             border-radius: 8px;
             padding: 8px 12px;
-            color: #FEFEFE; 
+            color: #FEFEFE;
             cursor: pointer;
             font-family: 'Rothek', Arial, sans-serif;
             font-weight: 700;
@@ -213,15 +214,15 @@
         }
 
         #toggle-menu-button:hover {
-            background: rgba(89, 95, 87, 0.7); 
+            background: rgba(89, 95, 87, 0.7);
         }
 
         #parameter-menu {
             position: absolute;
             bottom: 100%;
             right: 0;
-            background: rgba(38, 45, 36, 0.95); 
-            border: 1px solid rgba(89, 95, 87, 0.5); 
+            background: rgba(38, 45, 36, 0.95);
+            border: 1px solid rgba(89, 95, 87, 0.5);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 10px;
@@ -283,8 +284,8 @@
             display: block;
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
-            color: #E1E6E0; 
-            font-weight: 300; 
+            color: #E1E6E0;
+            font-weight: 300;
             font-style: normal;
         }
 
@@ -295,7 +296,7 @@
 
         .parameter-value {
             font-size: 0.75rem;
-            color: #595F57; 
+            color: #595F57;
         }
 
         /* Mobile Responsiveness */
@@ -310,8 +311,6 @@
             #toggle-menu-button {
                 width: 100%;
                 text-align: center;
-                font-size: 1.2rem;
-                padding: 12px 16px;
             }
 
             #parameter-menu {
@@ -322,37 +321,37 @@
                 width: auto;
                 min-width: auto;
                 max-height: 70vh;
-                padding: 1.5rem;
             }
 
             .parameter-categories {
-                gap: 0.5rem;
-                margin-bottom: 1.5rem;
+                gap: 0.25rem;
             }
 
             .category-tab {
-                font-size: 1.5rem;
-                padding: 12px 16px;
-                min-width: 75px;
-            }
-
-            .parameter-group {
-                margin-bottom: 1.5rem;
+                font-size: 1rem;
+                padding: 6px 8px;
+                min-width: 50px;
             }
 
             .parameter-group label {
-                font-size: 1.2rem;
-                margin-bottom: 0.75rem;
+                font-size: 0.8rem;
             }
 
             .parameter-group input[type="range"] {
-                height: 72px;
-                margin-bottom: 0.5rem;
                 -webkit-appearance: none;
                 appearance: none;
-                background: rgba(89, 95, 87, 0.3);
-                border-radius: 36px;
+                width: 100%;
+                height: 48px;
+                background: transparent;
                 outline: none;
+            }
+
+            .parameter-group input[type="range"]::-webkit-slider-runnable-track {
+                width: 100%;
+                height: 8px;
+                cursor: pointer;
+                background: rgba(89, 95, 87, 0.5);
+                border-radius: 4px;
             }
 
             .parameter-group input[type="range"]::-webkit-slider-thumb {
@@ -364,6 +363,15 @@
                 border-radius: 50%;
                 cursor: pointer;
                 border: 2px solid rgba(89, 95, 87, 0.7);
+                margin-top: -14px;
+            }
+
+            .parameter-group input[type="range"]::-moz-range-track {
+                width: 100%;
+                height: 8px;
+                cursor: pointer;
+                background: rgba(89, 95, 87, 0.5);
+                border-radius: 4px;
             }
 
             .parameter-group input[type="range"]::-moz-range-thumb {
@@ -374,12 +382,9 @@
                 cursor: pointer;
                 border: 2px solid rgba(89, 95, 87, 0.7);
             }
-
-            .parameter-value {
-                font-size: 1.1rem;
-            }
         }
 
+        /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
@@ -387,14 +392,16 @@
                 top: 100%;
                 left: 0;
                 right: 0;
-                background: rgba(38, 45, 36, 0.95); 
+                background: rgba(38, 45, 36, 0.95);
                 flex-direction: column;
                 padding: 1rem 2rem;
                 gap: 1rem;
             }
+
             .nav-links.show {
                 display: flex;
             }
+
             .mobile-menu-btn {
                 display: block;
             }
