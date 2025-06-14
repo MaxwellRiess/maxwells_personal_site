@@ -625,4 +625,11 @@ main {
 .section.active,
 .article-section.active {
     display: flex !important;
+}
+
+/* Add space below fixed nav bar for top-aligned sections */
+#blog .blog-section,
+#pottery .content-section,
+#contact .content-section {
+    margin-top: 6rem;
 } 
