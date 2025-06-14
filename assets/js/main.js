@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
             target.classList.add('active');
         }
 
+        // Scroll the main container to the top so content is visible immediately
+        document.querySelector('main').scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
         // Update active nav link
         navLinks.forEach(link => {
             link.classList.remove('active');
@@ -72,6 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (target) {
             target.classList.add('active');
         }
+
+        // Scroll the main container to the top so article content is visible immediately
+        document.querySelector('main').scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
         // Clear active nav links
         navLinks.forEach(link => {
