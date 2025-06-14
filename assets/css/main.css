@@ -632,4 +632,15 @@ main {
 #pottery .content-section,
 #contact .content-section {
     margin-top: 6rem;
+}
+
+/* Override layout for content-heavy sections */
+#blog.section,
+#pottery.section,
+#contact.section {
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-top: 8rem; /* space for fixed nav */
+    padding-bottom: 4rem;
 } 
