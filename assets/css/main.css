@@ -613,4 +613,16 @@ main {
         cursor: pointer;
         border: 2px solid rgba(89, 95, 87, 0.7);
     }
+}
+
+/* Hide non-active sections to prevent extra page length */
+.section:not(.active),
+.article-section:not(.active) {
+    display: none !important;
+}
+
+/* Ensure active sections remain flex for layout */
+.section.active,
+.article-section.active {
+    display: flex !important;
 } 
