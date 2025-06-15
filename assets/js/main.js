@@ -2,7 +2,8 @@ let youAreHereBoid = null;
 let manualControlEnabled = false;
 let keyboardInput = { up: false, down: false, left: false, right: false };
 let proximityColoringEnabled = false;
-let proximityColor = '#ff6b6b'; // Default proximity color
+let proximityColorClose = '#ff6b6b'; // Color for boids close to neighbors
+let proximityColorFar = '#4ecdc4'; // Color for boids far from neighbors
 const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted)
 const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
 
@@ -164,7 +165,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Proximity coloring controls
     const proximityColorToggle = document.getElementById('proximityColorToggle');
-    const proximityColorPicker = document.getElementById('proximityColorPicker');
+    const proximityColorPickerClose = document.getElementById('proximityColorPickerClose');
+    const proximityColorPickerFar = document.getElementById('proximityColorPickerFar');
     
     if (proximityColorToggle) {
         proximityColorToggle.addEventListener('change', (e) => {
@@ -172,9 +174,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    if (proximityColorPicker) {
-        proximityColorPicker.addEventListener('input', (e) => {
-            proximityColor = e.target.value;
+    if (proximityColorPickerClose) {
+        proximityColorPickerClose.addEventListener('input', (e) => {
+            proximityColorClose = e.target.value;
+        });
+    }
+    
+    if (proximityColorPickerFar) {
+        proximityColorPickerFar.addEventListener('input', (e) => {
+            proximityColorFar = e.target.value;
         });
     }
 
@@ -262,19 +270,20 @@ function interpolateColor(color1, color2, factor) {
     };
 }
 
-function getProximityColor(distance, maxDistance, baseColor) {
-    const rgb = hexToRgb(baseColor);
-    if (!rgb) return defaultBoidColor;
+function getProximityColor(distance, maxDistance, closeColor, farColor) {
+    const closeRgb = hexToRgb(closeColor);
+    const farRgb = hexToRgb(farColor);
+    
+    if (!closeRgb || !farRgb) return defaultBoidColor;
     
     // Normalize distance (0 = very close, 1 = far away)
     const normalizedDistance = Math.min(distance / maxDistance, 1);
     
-    // Create gradient: close = full color, far = faded to white
-    const whiteColor = { r: 249, g: 253, b: 249 };
-    const interpolated = interpolateColor(rgb, whiteColor, normalizedDistance * 0.7);
+    // Interpolate between close color and far color
+    const interpolated = interpolateColor(closeRgb, farRgb, normalizedDistance);
     
-    // Calculate alpha based on distance (closer = more opaque)
-    const alpha = 0.9 - (normalizedDistance * 0.3);
+    // Keep high alpha for bold colors
+    const alpha = 0.9;
     
     return `rgba(${interpolated.r}, ${interpolated.g}, ${interpolated.b}, ${alpha})`;
 }
@@ -327,7 +336,7 @@ function initFlockingSimulation() {
             if (proximityColoringEnabled && boids) {
                 const nearestDistance = this.findNearestNeighborDistance(boids);
                 const maxDistance = simulationParameters.perceptionRadius; // Use perception radius as max distance
-                boidFillStyle = getProximityColor(nearestDistance, maxDistance, proximityColor);
+                boidFillStyle = getProximityColor(nearestDistance, maxDistance, proximityColorClose, proximityColorFar);
             }
 
             // Override with selected boid color if this is the selected boid
