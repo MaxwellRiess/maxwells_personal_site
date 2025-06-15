@@ -1,6 +1,8 @@
 let youAreHereBoid = null;
 let manualControlEnabled = false;
 let keyboardInput = { up: false, down: false, left: false, right: false };
+let proximityColoringEnabled = false;
+let proximityColor = '#ff6b6b'; // Default proximity color
 const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted)
 const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
 
@@ -160,6 +162,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Proximity coloring controls
+    const proximityColorToggle = document.getElementById('proximityColorToggle');
+    const proximityColorPicker = document.getElementById('proximityColorPicker');
+    
+    if (proximityColorToggle) {
+        proximityColorToggle.addEventListener('change', (e) => {
+            proximityColoringEnabled = e.target.checked;
+        });
+    }
+    
+    if (proximityColorPicker) {
+        proximityColorPicker.addEventListener('input', (e) => {
+            proximityColor = e.target.value;
+        });
+    }
+
     // Keyboard event listeners for manual control
     document.addEventListener('keydown', (e) => {
         if (!manualControlEnabled || !youAreHereBoid) return;
@@ -226,6 +244,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Color utility functions
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function interpolateColor(color1, color2, factor) {
+    return {
+        r: Math.round(color1.r + factor * (color2.r - color1.r)),
+        g: Math.round(color1.g + factor * (color2.g - color1.g)),
+        b: Math.round(color1.b + factor * (color2.b - color1.b))
+    };
+}
+
+function getProximityColor(distance, maxDistance, baseColor) {
+    const rgb = hexToRgb(baseColor);
+    if (!rgb) return defaultBoidColor;
+    
+    // Normalize distance (0 = very close, 1 = far away)
+    const normalizedDistance = Math.min(distance / maxDistance, 1);
+    
+    // Create gradient: close = full color, far = faded to white
+    const whiteColor = { r: 249, g: 253, b: 249 };
+    const interpolated = interpolateColor(rgb, whiteColor, normalizedDistance * 0.7);
+    
+    // Calculate alpha based on distance (closer = more opaque)
+    const alpha = 0.9 - (normalizedDistance * 0.3);
+    
+    return `rgba(${interpolated.r}, ${interpolated.g}, ${interpolated.b}, ${alpha})`;
+}
+
 // Flocking Simulation Code
 function initFlockingSimulation() {
     const canvas = document.getElementById('flocking-canvas');
@@ -251,12 +304,33 @@ function initFlockingSimulation() {
             this.vy = vy;
         }
 
-        draw() {
+        findNearestNeighborDistance(boids) {
+            let minDistance = Infinity;
+            for (const other of boids) {
+                if (other !== this) {
+                    const distance = Math.hypot(this.x - other.x, this.y - other.y);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                    }
+                }
+            }
+            return minDistance;
+        }
+
+        draw(boids) {
             const emoji = ">";
             const size = simulationParameters.boidSize;
             let boidFillStyle = defaultBoidColor;
             let fontWeight = ''; // Default no specific weight
 
+            // Handle proximity coloring
+            if (proximityColoringEnabled && boids) {
+                const nearestDistance = this.findNearestNeighborDistance(boids);
+                const maxDistance = simulationParameters.perceptionRadius; // Use perception radius as max distance
+                boidFillStyle = getProximityColor(nearestDistance, maxDistance, proximityColor);
+            }
+
+            // Override with selected boid color if this is the selected boid
             if (this === youAreHereBoid) {
                 boidFillStyle = selectedBoidColor;
                 fontWeight = 'bold '; // Add bold prefix for selected boid
@@ -463,7 +537,7 @@ function initFlockingSimulation() {
         }
 
         for (const boid of boids) {
-            boid.draw();
+            boid.draw(boids);
         }
 
         requestAnimationFrame(animate);

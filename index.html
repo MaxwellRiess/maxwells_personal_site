@@ -284,6 +284,16 @@
                     <label for="avoidanceWeight">Edge Avoidance Weight: <span id="avoidanceWeightValue">1.0</span></label>
                     <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
                 </div>
+                <div class="parameter-group" style="border-top: 1px solid rgba(89, 95, 87, 0.3); padding-top: 1rem; margin-top: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="checkbox" id="proximityColorToggle" style="transform: scale(1.2);">
+                        <span>Proximity Coloring</span>
+                    </label>
+                    <div class="parameter-group" style="margin-left: 1.5rem;">
+                        <label for="proximityColorPicker" style="display: block; margin-bottom: 0.3rem;">Color:</label>
+                        <input type="color" id="proximityColorPicker" value="#ff6b6b" style="width: 60px; height: 30px; border: none; border-radius: 4px; cursor: pointer;">
+                    </div>
+                </div>
             </div>
 
             <div class="parameter-group" style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(89, 95, 87, 0.3);">
