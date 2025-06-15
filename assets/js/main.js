@@ -1,4 +1,6 @@
 let youAreHereBoid = null;
+let manualControlEnabled = false;
+let keyboardInput = { up: false, down: false, left: false, right: false };
 const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted)
 const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
 
@@ -136,6 +138,75 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const manualControlButton = document.getElementById('manualControlButton');
+    if (manualControlButton) {
+        manualControlButton.addEventListener('click', () => {
+            manualControlEnabled = !manualControlEnabled;
+            
+            if (manualControlEnabled) {
+                if (!youAreHereBoid && window.boids && window.boids.length > 0) {
+                    // If no boid is selected, select one automatically
+                    const randomIndex = Math.floor(Math.random() * window.boids.length);
+                    youAreHereBoid = window.boids[randomIndex];
+                }
+                manualControlButton.textContent = 'Release Control';
+                manualControlButton.style.backgroundColor = 'rgba(0, 123, 255, 0.8)';
+            } else {
+                manualControlButton.textContent = 'Take Control';
+                manualControlButton.style.backgroundColor = 'rgba(89, 95, 87, 0.8)';
+                // Reset keyboard input when disabling control
+                keyboardInput = { up: false, down: false, left: false, right: false };
+            }
+        });
+    }
+
+    // Keyboard event listeners for manual control
+    document.addEventListener('keydown', (e) => {
+        if (!manualControlEnabled || !youAreHereBoid) return;
+        
+        switch(e.key) {
+            case 'ArrowUp':
+                keyboardInput.up = true;
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                keyboardInput.down = true;
+                e.preventDefault();
+                break;
+            case 'ArrowLeft':
+                keyboardInput.left = true;
+                e.preventDefault();
+                break;
+            case 'ArrowRight':
+                keyboardInput.right = true;
+                e.preventDefault();
+                break;
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (!manualControlEnabled || !youAreHereBoid) return;
+        
+        switch(e.key) {
+            case 'ArrowUp':
+                keyboardInput.up = false;
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                keyboardInput.down = false;
+                e.preventDefault();
+                break;
+            case 'ArrowLeft':
+                keyboardInput.left = false;
+                e.preventDefault();
+                break;
+            case 'ArrowRight':
+                keyboardInput.right = false;
+                e.preventDefault();
+                break;
+        }
+    });
+
     // Smooth scroll for nav links
     document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -201,7 +272,44 @@ function initFlockingSimulation() {
             ctx.restore();
         }
 
+        updateManualControl() {
+            const controlForce = 0.3; // How responsive the manual control is
+            
+            // Apply keyboard input as forces
+            if (keyboardInput.up) this.vy -= controlForce;
+            if (keyboardInput.down) this.vy += controlForce;
+            if (keyboardInput.left) this.vx -= controlForce;
+            if (keyboardInput.right) this.vx += controlForce;
+            
+            // Limit speed
+            const speed = Math.hypot(this.vx, this.vy);
+            if (speed > simulationParameters.maxSpeed * 1.5) { // Allow slightly higher speed for manual control
+                this.vx = (this.vx / speed) * simulationParameters.maxSpeed * 1.5;
+                this.vy = (this.vy / speed) * simulationParameters.maxSpeed * 1.5;
+            }
+            
+            // Add some drag to make control feel more natural
+            this.vx *= 0.98;
+            this.vy *= 0.98;
+            
+            // Update position
+            this.x += this.vx;
+            this.y += this.vy;
+            
+            // Handle boundaries (wrap around)
+            if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
+            if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
+            if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
+            if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
+        }
+
         update(boids) {
+            // Check if this boid is being manually controlled
+            if (this === youAreHereBoid && manualControlEnabled) {
+                this.updateManualControl();
+                return;
+            }
+
             let alignment = { x: 0, y: 0 };
             let cohesion = { x: 0, y: 0 };
             let separation = { x: 0, y: 0 };
