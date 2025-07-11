@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maxwell Riess - Product Manager & Creative</title>
     <link href="https://fonts.googleapis.com/css2?family=Helvetica:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/fonts.css">
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/fonts.css?v=2.0">
+    <link rel="stylesheet" href="assets/css/main.css?v=2.0">
 </head>
 <body>
     <canvas id="flocking-canvas"></canvas>
 
     <nav>
         <div class="nav-container">
-            <a href="#" class="logo">Maxwell Riess</a>
+            <a href="#" class="logo">MJR</a>
             <ul class="nav-links">
                 <li><a href="#" data-section="home" class="active">Home</a></li>
                 <li><a href="#" data-section="about">About</a></li>
                 <li><a href="#" data-section="projects">Projects</a></li>
                 <li><a href="#" data-section="pottery">Pottery</a></li>
-                <li><a href="#" data-section="blog">Blog</a></li>
+                <li><a href="#" data-section="blog">Writing</a></li>
                 <li><a href="#" data-section="contact">Contact</a></li>
             </ul>
             <button class="mobile-menu-btn">☰</button>
@@ -33,8 +33,8 @@
         <section id="home" class="section active">
             <div class="container">
                 <div class="hero">
-                    <h1>A person you might meet</h1>
-                    <p>"The Lottery is the foundation of our reality."</p>
+                    <h1></h1>
+                    <p>The Lottery is the foundation of our reality</p>
                     <!-- <a href="#" class="cta-button" data-section="projects">View My Work</a> -->
                     <!-- <a href="#" class="cta-button" data-section="pottery">See My Pottery</a> -->
                 </div>
@@ -148,13 +148,12 @@
         <section id="blog" class="section">
             <div class="container">
                 <div class="blog-section">
-                    <h2 class="section-title">Thoughts & Insights</h2>
+                    <h2 class="section-title">Writing</h2>
                     <p style="text-align: center; color: #cccccc; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                        Reflections on product management, digital transformation, and the intersection of technology and public service.
                     </p>
                     
                     <div class="blog-post">
-                        <h3>Craft in an AI World: Reflections on Art, Technology, and Dimensionality</h3>
+                        <h3>Craft in an AI World</h3>
                         <p class="blog-excerpt">In government, every digital service we design has the potential to impact millions of lives. The principles that guide us aren\'t just about good UX—they\'re about democracy, accessibility, and public trust...</p>
                         <div class="blog-meta">
                             <span>March 15, 2025 • 8 min read</span>
@@ -162,15 +161,15 @@
                         <a href="article1-digital-service-design.html" class="read-more">Read more →</a>
                     </div>
                     <div class="blog-post">
-                        <h3>Building Tools for the World We Want</h3>
-                        <p class="blog-excerpt">Technology isn\'t neutral. Every product decision we make shapes how people interact with services, institutions, and each other. As product managers, we have a responsibility to think beyond features and consider the world we\'re building...</p>
+                        <h3>The World We Want</h3>
+                        <p class="blog-excerpt">Technology isn't neutral. Every product decision we make shapes how people interact with services, institutions, and each other. As product managers, we have a responsibility to think beyond features and consider the world we\'re building...</p>
                         <div class="blog-meta">
                             <span>February 28, 2025 • 6 min read</span>
                         </div>
                         <a href="article2-building-tools.html" class="read-more">Read more →</a>
                     </div>
                     <div class="blog-post">
-                        <h3>Lessons from the Potter\'s Wheel</h3>
+                        <h3>The wheel</h3>
                         <p class="blog-excerpt">Working with clay has taught me more about product management than many business books. Both require patience, iteration, and the wisdom to know when to start over...</p>
                         <div class="blog-meta">
                             <span>January 20, 2025 • 4 min read</span>
@@ -236,53 +235,58 @@
 
             <div class="parameter-category active" data-category="population">
                 <div class="parameter-group">
-                    <label for="numBoids">Number of Boids: <span id="numBoidsValue">200</span></label>
+                    <label for="numBoids">Population: <span id="numBoidsValue">200</span></label>
                     <input type="range" id="numBoids" min="10" max="500" value="200">
                 </div>
                 <div class="parameter-group">
-                    <label for="boidSize">Boid Size: <span id="boidSizeValue">5</span></label>
+                    <label for="boidSize">Size: <span id="boidSizeValue">5</span></label>
                     <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
                 </div>
             </div>
 
             <div class="parameter-category" data-category="movement">
                 <div class="parameter-group">
-                    <label for="maxSpeed">Max Speed: <span id="maxSpeedValue">1.5</span></label>
+                    <label for="maxSpeed">Speed: <span id="maxSpeedValue">1.5</span></label>
                     <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="1.5">
                 </div>
                 <div class="parameter-group">
-                    <label for="maxForce">Max Force: <span id="maxForceValue">0.1</span></label>
+                    <label for="maxForce">Force: <span id="maxForceValue">0.1</span></label>
                     <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
                 </div>
             </div>
 
             <div class="parameter-category" data-category="perception">
                 <div class="parameter-group">
-                    <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">17</span></label>
+                    <label for="perceptionRadius">Perception: <span id="perceptionRadiusValue">17</span></label>
                     <input type="range" id="perceptionRadius" min="5" max="100" value="17">
                 </div>
                 <div class="parameter-group">
-                    <label for="avoidanceRadius">Avoidance Radius: <span id="avoidanceRadiusValue">20</span></label>
+                    <label for="avoidanceRadius">Personal Space:<span id="avoidanceRadiusValue">20</span></label>
                     <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
                 </div>
             </div>
 
             <div class="parameter-category" data-category="behavior">
                 <div class="parameter-group">
-                    <label for="cohesionWeight">Cohesion Weight: <span id="cohesionWeightValue">11.0</span></label>
+                    <label for="cohesionWeight">Attraction: <span id="cohesionWeightValue">11.0</span></label>
                     <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
                 </div>
                 <div class="parameter-group">
-                    <label for="separationWeight">Separation Weight: <span id="separationWeightValue">1.8</span></label>
+                    <label for="separationWeight">Separation: <span id="separationWeightValue">1.8</span></label>
                     <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
                 </div>
                 <div class="parameter-group">
-                    <label for="alignmentWeight">Alignment Weight: <span id="alignmentWeightValue">1.5</span></label>
+                    <label for="alignmentWeight">Alignment: <span id="alignmentWeightValue">1.5</span></label>
                     <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
                 </div>
                 <div class="parameter-group">
-                    <label for="avoidanceWeight">Edge Avoidance Weight: <span id="avoidanceWeightValue">1.0</span></label>
+                    <label for="avoidanceWeight">Self control:<span id="avoidanceWeightValue">1.0</span></label>
                     <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
+                    <!-- Hidden easter egg - only shows when self control is at maximum (5) -->
+                    <div id="hiddenControl" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(0, 0, 0, 0.3); border-radius: 6px; border: 1px solid rgba(89, 95, 87, 0.3);">
+                        <button id="manualControlButton" class="cta-button" style="padding: 6px 12px; width: 100%; font-size: 0.8rem; background-color: rgba(89, 95, 87, 0.6);">Take Control</button>
+                        <p style="font-size: 0.7rem; color: #999; margin: 0.5rem 0 0 0; text-align: center;">Use arrow keys to fly</p>
+                    </div>
                 </div>
                 <div class="parameter-group" style="border-top: 1px solid rgba(89, 95, 87, 0.3); padding-top: 1rem; margin-top: 1rem;">
                     <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -299,9 +303,7 @@
             </div>
 
             <div class="parameter-group" style="text-align: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(89, 95, 87, 0.3);">
-                <button id="youAreHereButton" class="cta-button" style="padding: 8px 16px; width: auto; margin-bottom: 8px;">You Are Here</button>
-                <button id="manualControlButton" class="cta-button" style="padding: 8px 16px; width: auto; background-color: rgba(89, 95, 87, 0.8);">Take Control</button>
-                <p style="font-size: 0.8rem; color: #999; margin-top: 8px; margin-bottom: 0;">Use arrow keys to fly when control is enabled</p>
+                <button id="youAreHereButton" class="cta-button" style="padding: 8px 16px; width: auto;">You Are Here</button>
             </div>
         </div>
     </div>

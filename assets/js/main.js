@@ -585,6 +585,27 @@ function initFlockingSimulation() {
                     if (control === 'numBoids') {
                         initBoids();
                     }
+                    
+                    // Easter egg: Show hidden control when self control is at maximum (5)
+                    if (control === 'avoidanceWeight') {
+                        const hiddenControl = document.getElementById('hiddenControl');
+                        if (hiddenControl) {
+                            if (value === 5) {
+                                hiddenControl.style.display = 'block';
+                            } else {
+                                hiddenControl.style.display = 'none';
+                                // Also disable manual control if it was enabled
+                                if (manualControlEnabled) {
+                                    manualControlEnabled = false;
+                                    const manualControlButton = document.getElementById('manualControlButton');
+                                    if (manualControlButton) {
+                                        manualControlButton.textContent = 'Take Control';
+                                        manualControlButton.style.backgroundColor = 'rgba(89, 95, 87, 0.6)';
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
