@@ -8,7 +8,7 @@ const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted
 const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
 
 // Navigation functionality
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const navLinks = document.querySelectorAll('.nav-links a, .cta-button[data-section]');
     const readMoreLinks = document.querySelectorAll('.read-more[data-article]');
     const sections = document.querySelectorAll('.section');
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const backButton = document.getElementById('back-button');
 
     // Mobile menu toggle
-    mobileMenuBtn.addEventListener('click', function() {
+    mobileMenuBtn.addEventListener('click', function () {
         navLinksContainer.classList.toggle('show');
     });
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
         navLinks.forEach(link => {
             link.classList.remove('active');
         });
-        
+
         const activeNavLink = document.querySelector(`.nav-links a[data-section="${targetSection}"]`);
         if (activeNavLink) {
             activeNavLink.classList.add('active');
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set very slow simulation for articles
         canvas.style.opacity = '0.1';
         document.body.classList.add('article-page');
-        
+
         // Show back button
         backButton.classList.add('show');
 
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add click listeners to navigation links
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetSection = this.getAttribute('data-section');
             if (targetSection) {
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add click listeners to read more links
     readMoreLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const articleId = this.getAttribute('data-article');
             if (articleId) {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Back button functionality
-    backButton.addEventListener('click', function(e) {
+    backButton.addEventListener('click', function (e) {
         e.preventDefault();
         showSection('blog');
     });
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (manualControlButton) {
         manualControlButton.addEventListener('click', () => {
             manualControlEnabled = !manualControlEnabled;
-            
+
             if (manualControlEnabled) {
                 if (!youAreHereBoid && window.boids && window.boids.length > 0) {
                     // If no boid is selected, select one automatically
@@ -167,19 +167,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const proximityColorToggle = document.getElementById('proximityColorToggle');
     const proximityColorPickerClose = document.getElementById('proximityColorPickerClose');
     const proximityColorPickerFar = document.getElementById('proximityColorPickerFar');
-    
+
     if (proximityColorToggle) {
         proximityColorToggle.addEventListener('change', (e) => {
             proximityColoringEnabled = e.target.checked;
         });
     }
-    
+
     if (proximityColorPickerClose) {
         proximityColorPickerClose.addEventListener('input', (e) => {
             proximityColorClose = e.target.value;
         });
     }
-    
+
     if (proximityColorPickerFar) {
         proximityColorPickerFar.addEventListener('input', (e) => {
             proximityColorFar = e.target.value;
@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Keyboard event listeners for manual control
     document.addEventListener('keydown', (e) => {
         if (!manualControlEnabled || !youAreHereBoid) return;
-        
-        switch(e.key) {
+
+        switch (e.key) {
             case 'ArrowUp':
                 keyboardInput.up = true;
                 e.preventDefault();
@@ -212,8 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('keyup', (e) => {
         if (!manualControlEnabled || !youAreHereBoid) return;
-        
-        switch(e.key) {
+
+        switch (e.key) {
             case 'ArrowUp':
                 keyboardInput.up = false;
                 e.preventDefault();
@@ -273,18 +273,18 @@ function interpolateColor(color1, color2, factor) {
 function getProximityColor(distance, maxDistance, closeColor, farColor) {
     const closeRgb = hexToRgb(closeColor);
     const farRgb = hexToRgb(farColor);
-    
+
     if (!closeRgb || !farRgb) return defaultBoidColor;
-    
+
     // Normalize distance (0 = very close, 1 = far away)
     const normalizedDistance = Math.min(distance / maxDistance, 1);
-    
+
     // Interpolate between close color and far color
     const interpolated = interpolateColor(closeRgb, farRgb, normalizedDistance);
-    
+
     // Keep high alpha for bold colors
     const alpha = 0.9;
-    
+
     return `rgba(${interpolated.r}, ${interpolated.g}, ${interpolated.b}, ${alpha})`;
 }
 
@@ -350,13 +350,13 @@ function initFlockingSimulation() {
                         // Handle wrap-around for grid queries
                         let wrappedR = r;
                         let wrappedC = c;
-                        
+
                         if (r < 0) wrappedR = this.rows - 1;
                         else if (r >= this.rows) wrappedR = 0;
-                        
+
                         if (c < 0) wrappedC = this.cols - 1;
                         else if (c >= this.cols) wrappedC = 0;
-                        
+
                         const cell = this.cells[wrappedR * this.cols + wrappedC];
                         for (let i = 0; i < cell.length; i++) {
                             neighbors.push(cell[i]);
@@ -391,18 +391,18 @@ function initFlockingSimulation() {
         findNearestNeighborDistance(grid) {
             let minDistance = Infinity;
             const neighbors = grid.getPotentialNeighbors(this);
-            
+
             for (const other of neighbors) {
                 if (other !== this) {
                     let dx = this.x - other.x;
                     let dy = this.y - other.y;
-                    
+
                     // Handle wrap-around distance if enabled
                     if (simulationParameters.wrapAround) {
                         if (Math.abs(dx) > canvas.width / 2) dx = canvas.width - Math.abs(dx);
                         if (Math.abs(dy) > canvas.height / 2) dy = canvas.height - Math.abs(dy);
                     }
-                    
+
                     const distance = Math.hypot(dx, dy);
                     if (distance < minDistance) {
                         minDistance = distance;
@@ -436,35 +436,35 @@ function initFlockingSimulation() {
             const angle = Math.atan2(this.vy, this.vx);
             ctx.rotate(angle);
             ctx.font = `${fontWeight}${size * 4}px ${boidFontFamily}`; /* Use computed font family and conditional bolding */
-            ctx.fillStyle = boidFillStyle; 
+            ctx.fillStyle = boidFillStyle;
             ctx.fillText(emoji, -size, size);
             ctx.restore();
         }
 
         updateManualControl() {
             const controlForce = 0.3; // How responsive the manual control is
-            
+
             // Apply keyboard input as forces
             if (keyboardInput.up) this.vy -= controlForce;
             if (keyboardInput.down) this.vy += controlForce;
             if (keyboardInput.left) this.vx -= controlForce;
             if (keyboardInput.right) this.vx += controlForce;
-            
+
             // Limit speed
             const speed = Math.hypot(this.vx, this.vy);
             if (speed > simulationParameters.maxSpeed * 1.5) { // Allow slightly higher speed for manual control
                 this.vx = (this.vx / speed) * simulationParameters.maxSpeed * 1.5;
                 this.vy = (this.vy / speed) * simulationParameters.maxSpeed * 1.5;
             }
-            
+
             // Add some drag to make control feel more natural
             this.vx *= 0.98;
             this.vy *= 0.98;
-            
+
             // Update position
             this.x += this.vx;
             this.y += this.vy;
-            
+
             // Handle boundaries (wrap around)
             if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
             if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
@@ -509,7 +509,7 @@ function initFlockingSimulation() {
                     if (d < simulationParameters.perceptionRadius) {
                         alignment.x += other.vx;
                         alignment.y += other.vy;
-                        
+
                         // For cohesion, we want the position relative to us, handling wrap-around
                         cohesion.x += other.x; // This needs careful handling with wrap-around, but simple average is often "good enough" for visual boids. 
                         // Better approach for cohesion with wrap-around is to average the relative offsets and add to current pos.
@@ -517,19 +517,19 @@ function initFlockingSimulation() {
                         // Cohesion is steering towards average position of neighbors.
                         // Average position = (sum of positions) / count.
                         // Vector to average = Average position - my position.
-                        
+
                         // Let's accumulate the relative position instead to handle wrap-around correctly
                         // cohesion accumulator will store sum of (other.position) - but we need to adjust other.position for wrap around relative to this.
                         let otherX = other.x;
                         let otherY = other.y;
-                         if (simulationParameters.wrapAround) {
+                        if (simulationParameters.wrapAround) {
                             if (otherX - this.x > canvas.width / 2) otherX -= canvas.width;
                             else if (this.x - otherX > canvas.width / 2) otherX += canvas.width;
-                            
+
                             if (otherY - this.y > canvas.height / 2) otherY -= canvas.height;
                             else if (this.y - otherY > canvas.height / 2) otherY += canvas.height;
                         }
-                        
+
                         cohesion.x += otherX;
                         cohesion.y += otherY;
 
@@ -681,6 +681,65 @@ function initFlockingSimulation() {
     initBoids();
     animate();
 
+    // Lightbox Logic
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxClose = document.getElementById('lightbox-close');
+    const potteryImages = document.querySelectorAll('.pottery-image img');
+
+    potteryImages.forEach(img => {
+        img.addEventListener('click', () => {
+            // Get the highest resolution image from srcset
+            const srcset = img.getAttribute('srcset');
+            let highResSrc = img.src; // Fallback
+
+            if (srcset) {
+                // Parse srcset to find the largest image
+                // Format: "url size, url size, ..."
+                const sources = srcset.split(',').map(src => {
+                    const parts = src.trim().split(' ');
+                    return {
+                        url: parts[0],
+                        width: parseInt(parts[1])
+                    };
+                });
+
+                // Sort by width descending and pick the first one
+                sources.sort((a, b) => b.width - a.width);
+                if (sources.length > 0) {
+                    highResSrc = sources[0].url;
+                }
+            }
+
+            lightboxImg.src = highResSrc;
+            lightbox.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        });
+    });
+
+    function closeLightbox() {
+        lightbox.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+        setTimeout(() => {
+            lightboxImg.src = '';
+        }, 300);
+    }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+            closeLightbox();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('show')) {
+            closeLightbox();
+        }
+    });
+
     // Parameter controls
     const controls = [
         'numBoids', 'boidSize', 'maxSpeed', 'maxForce', 'perceptionRadius', 'avoidanceRadius',
@@ -703,15 +762,15 @@ function initFlockingSimulation() {
                 } else {
                     value = parseFloat(event.target.value);
                 }
-                
+
                 valueElement.textContent = value;
-                
+
                 if (!isNaN(value)) {
                     simulationParameters[control] = value;
                     if (control === 'numBoids') {
                         initBoids();
                     }
-                    
+
                     // Easter egg: Show hidden control when self control is at maximum (5)
                     if (control === 'avoidanceWeight') {
                         const hiddenControl = document.getElementById('hiddenControl');
@@ -754,11 +813,11 @@ function initFlockingSimulation() {
     categoryTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetCategory = tab.getAttribute('data-category');
-            
+
             // Remove active class from all tabs and categories
             categoryTabs.forEach(t => t.classList.remove('active'));
             parameterCategories.forEach(c => c.classList.remove('active'));
-            
+
             // Add active class to clicked tab and corresponding category
             tab.classList.add('active');
             const targetCategoryElement = document.querySelector(`.parameter-category[data-category="${targetCategory}"]`);
