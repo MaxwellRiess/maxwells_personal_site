@@ -297,9 +297,84 @@ function initFlockingSimulation() {
     const computedStyleForBoids = getComputedStyle(document.documentElement);
     const boidFontFamily = computedStyleForBoids.getPropertyValue('--font-heading').trim();
 
+    // Spatial Grid for optimization
+    class SpatialGrid {
+        constructor(width, height, cellSize) {
+            this.cellSize = cellSize;
+            this.width = width;
+            this.height = height;
+            this.initCells();
+        }
+
+        initCells() {
+            this.cols = Math.ceil(this.width / this.cellSize);
+            this.rows = Math.ceil(this.height / this.cellSize);
+            this.cells = new Array(this.cols * this.rows).fill(null).map(() => []);
+        }
+
+        resize(width, height) {
+            this.width = width;
+            this.height = height;
+            this.initCells();
+        }
+
+        clear() {
+            for (let i = 0; i < this.cells.length; i++) {
+                this.cells[i].length = 0;
+            }
+        }
+
+        add(boid) {
+            const col = Math.floor(boid.x / this.cellSize);
+            const row = Math.floor(boid.y / this.cellSize);
+            // Handle boundary conditions
+            if (col >= 0 && col < this.cols && row >= 0 && row < this.rows) {
+                this.cells[row * this.cols + col].push(boid);
+            }
+        }
+
+        // Get potential neighbors from adjacent cells
+        getPotentialNeighbors(boid) {
+            const col = Math.floor(boid.x / this.cellSize);
+            const row = Math.floor(boid.y / this.cellSize);
+            const neighbors = [];
+
+            for (let r = row - 1; r <= row + 1; r++) {
+                for (let c = col - 1; c <= col + 1; c++) {
+                    if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
+                        const cell = this.cells[r * this.cols + c];
+                        for (let i = 0; i < cell.length; i++) {
+                            neighbors.push(cell[i]);
+                        }
+                    } else if (simulationParameters.wrapAround) {
+                        // Handle wrap-around for grid queries
+                        let wrappedR = r;
+                        let wrappedC = c;
+                        
+                        if (r < 0) wrappedR = this.rows - 1;
+                        else if (r >= this.rows) wrappedR = 0;
+                        
+                        if (c < 0) wrappedC = this.cols - 1;
+                        else if (c >= this.cols) wrappedC = 0;
+                        
+                        const cell = this.cells[wrappedR * this.cols + wrappedC];
+                        for (let i = 0; i < cell.length; i++) {
+                            neighbors.push(cell[i]);
+                        }
+                    }
+                }
+            }
+            return neighbors;
+        }
+    }
+
+    // Initialize grid with cell size slightly larger than max perception radius
+    const grid = new SpatialGrid(window.innerWidth, window.innerHeight, 100);
+
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        grid.resize(canvas.width, canvas.height);
     }
 
     window.addEventListener('resize', resizeCanvas);
@@ -313,11 +388,22 @@ function initFlockingSimulation() {
             this.vy = vy;
         }
 
-        findNearestNeighborDistance(boids) {
+        findNearestNeighborDistance(grid) {
             let minDistance = Infinity;
-            for (const other of boids) {
+            const neighbors = grid.getPotentialNeighbors(this);
+            
+            for (const other of neighbors) {
                 if (other !== this) {
-                    const distance = Math.hypot(this.x - other.x, this.y - other.y);
+                    let dx = this.x - other.x;
+                    let dy = this.y - other.y;
+                    
+                    // Handle wrap-around distance if enabled
+                    if (simulationParameters.wrapAround) {
+                        if (Math.abs(dx) > canvas.width / 2) dx = canvas.width - Math.abs(dx);
+                        if (Math.abs(dy) > canvas.height / 2) dy = canvas.height - Math.abs(dy);
+                    }
+                    
+                    const distance = Math.hypot(dx, dy);
                     if (distance < minDistance) {
                         minDistance = distance;
                     }
@@ -333,8 +419,8 @@ function initFlockingSimulation() {
             let fontWeight = ''; // Default no specific weight
 
             // Handle proximity coloring
-            if (proximityColoringEnabled && boids) {
-                const nearestDistance = this.findNearestNeighborDistance(boids);
+            if (proximityColoringEnabled && boids) { // boids here is actually the grid in the new implementation
+                const nearestDistance = this.findNearestNeighborDistance(boids); // passing grid
                 const maxDistance = simulationParameters.perceptionRadius; // Use perception radius as max distance
                 boidFillStyle = getProximityColor(nearestDistance, maxDistance, proximityColorClose, proximityColorFar);
             }
@@ -405,20 +491,54 @@ function initFlockingSimulation() {
             if (this.y < simulationParameters.boundary) this.vy += simulationParameters.maxForce * 2;
             if (this.y > canvas.height - simulationParameters.boundary) this.vy -= simulationParameters.maxForce * 2;
 
-            for (const other of boids) {
+            const neighbors = grid.getPotentialNeighbors(this);
+
+            for (const other of neighbors) {
                 if (other !== this) {
-                    const d = Math.hypot(this.x - other.x, this.y - other.y);
+                    let dx = this.x - other.x;
+                    let dy = this.y - other.y;
+
+                    // Handle wrap-around for distance calculation
+                    if (simulationParameters.wrapAround) {
+                        if (Math.abs(dx) > canvas.width / 2) dx = dx > 0 ? dx - canvas.width : dx + canvas.width;
+                        if (Math.abs(dy) > canvas.height / 2) dy = dy > 0 ? dy - canvas.height : dy + canvas.height;
+                    }
+
+                    const d = Math.hypot(dx, dy);
 
                     if (d < simulationParameters.perceptionRadius) {
                         alignment.x += other.vx;
                         alignment.y += other.vy;
-                        cohesion.x += other.x;
-                        cohesion.y += other.y;
+                        
+                        // For cohesion, we want the position relative to us, handling wrap-around
+                        cohesion.x += other.x; // This needs careful handling with wrap-around, but simple average is often "good enough" for visual boids. 
+                        // Better approach for cohesion with wrap-around is to average the relative offsets and add to current pos.
+                        // Let's stick to simple relative vector for cohesion force:
+                        // Cohesion is steering towards average position of neighbors.
+                        // Average position = (sum of positions) / count.
+                        // Vector to average = Average position - my position.
+                        
+                        // Let's accumulate the relative position instead to handle wrap-around correctly
+                        // cohesion accumulator will store sum of (other.position) - but we need to adjust other.position for wrap around relative to this.
+                        let otherX = other.x;
+                        let otherY = other.y;
+                         if (simulationParameters.wrapAround) {
+                            if (otherX - this.x > canvas.width / 2) otherX -= canvas.width;
+                            else if (this.x - otherX > canvas.width / 2) otherX += canvas.width;
+                            
+                            if (otherY - this.y > canvas.height / 2) otherY -= canvas.height;
+                            else if (this.y - otherY > canvas.height / 2) otherY += canvas.height;
+                        }
+                        
+                        cohesion.x += otherX;
+                        cohesion.y += otherY;
 
                         if (d < simulationParameters.avoidanceRadius) {
                             const forceMultiplier = (simulationParameters.avoidanceRadius - d) / simulationParameters.avoidanceRadius;
-                            avoidance.x += (this.x - other.x) * forceMultiplier;
-                            avoidance.y += (this.y - other.y) * forceMultiplier;
+                            // avoidance vector is vector AWAY from neighbor: this.pos - other.pos
+                            // We already calculated dx = this.x - other.x (adjusted for wrap)
+                            avoidance.x += dx * forceMultiplier;
+                            avoidance.y += dy * forceMultiplier;
                         }
 
                         count++;
@@ -541,12 +661,18 @@ function initFlockingSimulation() {
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Update grid
+        grid.clear();
         for (const boid of boids) {
-            boid.update(boids);
+            grid.add(boid);
         }
 
         for (const boid of boids) {
-            boid.draw(boids);
+            boid.update(grid);
+        }
+
+        for (const boid of boids) {
+            boid.draw(grid);
         }
 
         requestAnimationFrame(animate);
