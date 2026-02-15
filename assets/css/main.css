@@ -106,34 +106,6 @@ nav {
     cursor: pointer;
 }
 
-/* Back Button for Blog */
-.back-button {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    top: 100px;
-    /* Adjust as needed */
-    left: 2rem;
-    z-index: 1001;
-    font-family: var(--font-heading);
-    font-weight: var(--font-weight-bold);
-    font-style: var(--font-style-heading);
-    color: #FEFEFE;
-    text-decoration: none;
-    padding: 8px 16px;
-    background: rgba(89, 95, 87, 0.5);
-    /* Grey with alpha */
-    border: 1px solid rgba(249, 253, 249, 0.2);
-    /* Off-White border */
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-.back-button:hover {
-    background: rgba(89, 95, 87, 0.7);
-    /* Darker Grey on hover */
-}
-
 /* Main Content & Sections */
 main {
     height: 100%;
@@ -151,13 +123,19 @@ main {
     scroll-snap-align: start;
     padding: 4rem 2rem;
     position: relative;
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+}
+
+.js-enabled .section {
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease, transform 0.8s ease;
     visibility: hidden;
 }
 
-.section.active {
+.js-enabled .section.active {
     opacity: 1;
     transform: translateY(0);
     visibility: visible;
@@ -234,6 +212,15 @@ main {
     margin: 0 auto;
 }
 
+.about-text {
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.section-title-spaced {
+    margin-top: 4rem;
+}
+
 /* Grid Layouts */
 .grid {
     display: grid;
@@ -262,6 +249,29 @@ main {
     font-weight: var(--font-weight-bold);
     margin-bottom: 1rem;
     color: #FEFEFE;
+}
+
+.project-links {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.external-link {
+    color: #E1E6E0;
+    text-decoration: underline;
+}
+
+.section-intro {
+    text-align: center;
+    color: #cccccc;
+    margin-bottom: 3rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.section-intro-large {
+    font-size: 1.2rem;
 }
 
 /* Pottery Section */
@@ -363,16 +373,33 @@ main {
     margin-bottom: 1rem;
 }
 
-.read-more {
-    color: #E1E6E0;
-    /* Light Grey */
-    text-decoration: none;
-    transition: color 0.3s ease;
+.contact-links {
+    text-align: center;
 }
 
-.read-more:hover {
-    color: #FEFEFE;
-    /* White */
+.email-link {
+    font-size: 1.4rem;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 5px;
+}
+
+.email-link:hover {
+    color: #E1E6E0;
+}
+
+.email-link:focus-visible,
+.external-link:focus-visible,
+.nav-links a:focus-visible,
+.logo:focus-visible,
+.mobile-menu-btn:focus-visible,
+.cta-button:focus-visible,
+#toggle-menu-button:focus-visible,
+#lightbox-close:focus-visible,
+input:focus-visible {
+    outline: 2px solid #FEFEFE;
+    outline-offset: 3px;
 }
 
 
@@ -538,6 +565,79 @@ main {
     /* Consider styling range inputs for better theme consistency if browser defaults are jarring */
 }
 
+.hidden-control {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(89, 95, 87, 0.3);
+}
+
+.manual-control-btn {
+    padding: 6px 12px;
+    width: 100%;
+    font-size: 0.8rem;
+    background-color: rgba(89, 95, 87, 0.6);
+}
+
+.hidden-control-hint {
+    font-size: 0.7rem;
+    color: #999;
+    margin: 0.5rem 0 0 0;
+    text-align: center;
+}
+
+.parameter-group-divider {
+    border-top: 1px solid rgba(89, 95, 87, 0.3);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.toggle-checkbox {
+    transform: scale(1.2);
+}
+
+.nested-parameter-group {
+    margin-left: 1.5rem;
+}
+
+.color-label {
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.color-input {
+    width: 60px;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.color-input-with-margin {
+    margin-bottom: 0.5rem;
+}
+
+.parameter-footer {
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(89, 95, 87, 0.3);
+}
+
+.you-are-here-btn {
+    padding: 8px 16px;
+    width: auto;
+}
+
 .parameter-value {
     font-size: 0.75rem;
     color: #595F57;
@@ -633,12 +733,6 @@ main {
         margin: 2rem 1rem 0 1rem;
     }
 
-    .back-button {
-        left: 1rem;
-        font-size: 0.875rem;
-        padding: 6px 12px;
-    }
-
     /* Mobile simulation controls */
     #simulation-controls {
         bottom: 10px;
@@ -723,27 +817,25 @@ main {
     }
 }
 
-/* Hide non-active sections to prevent extra page length */
-.section:not(.active),
-.article-section:not(.active) {
+/* Hide non-active sections only when JS behavior is enabled */
+.js-enabled .section:not(.active) {
     display: none !important;
 }
 
 /* Ensure active sections remain flex for layout */
-.section.active,
-.article-section.active {
+.js-enabled .section.active {
     display: flex !important;
 }
 
 /* Exception: pottery section needs different layout for grid */
-#pottery.section.active {
+.js-enabled #pottery.section.active {
     display: block !important;
     /* Restore centering that was lost when changing from flex */
     padding-top: 6rem;
     text-align: center;
 }
 
-#pottery.section.active .container {
+.js-enabled #pottery.section.active .container {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -755,20 +847,32 @@ main {
 
 /* Add space below fixed nav bar for top-aligned sections */
 #blog .blog-section,
-#pottery .content-section,
 #contact .content-section {
     margin-top: 6rem;
 }
 
+#projects .content-section,
+#pottery .content-section {
+    margin-top: 1.25rem;
+}
+
 /* Override layout for content-heavy sections */
 #blog.section,
-#pottery.section,
 #contact.section {
     height: auto;
     min-height: 100vh;
     align-items: flex-start;
     padding-top: 8rem;
     /* space for fixed nav */
+    padding-bottom: 4rem;
+}
+
+#projects.section,
+#pottery.section {
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-top: 5rem;
     padding-bottom: 4rem;
 }
 
@@ -812,8 +916,11 @@ main {
     top: 20px;
     right: 30px;
     color: #f1f1f1;
+    background: transparent;
+    border: none;
     font-size: 40px;
     font-weight: bold;
+    line-height: 1;
     cursor: pointer;
     transition: color 0.3s ease;
     z-index: 2001;
@@ -825,4 +932,31 @@ main {
 
 .pottery-item {
     cursor: pointer;
+}
+
+@supports (content-visibility: auto) {
+    #pottery .pottery-item {
+        content-visibility: auto;
+        contain-intrinsic-size: 300px 225px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        scroll-behavior: auto !important;
+    }
+
+    .section,
+    .js-enabled .section,
+    .blog-post,
+    .pottery-image img,
+    #lightbox,
+    #lightbox-img,
+    .nav-links a,
+    .cta-button,
+    #toggle-menu-button,
+    #flocking-canvas {
+        transition: none !important;
+        transform: none !important;
+    }
 }

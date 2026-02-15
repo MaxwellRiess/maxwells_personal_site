@@ -5,6 +5,7 @@
          url('../fonts/rothek-extralight-webfont-full/webfonts/rothek-extralight.ttf') format('truetype');
     font-weight: 300; /* ExtraLight */
     font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
@@ -14,4 +15,5 @@
          url('../fonts/rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.ttf') format('truetype');
     font-weight: 700; /* Bold */
     font-style: italic;
-} 
+    font-display: swap;
+}

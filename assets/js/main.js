@@ -4,45 +4,48 @@ let keyboardInput = { up: false, down: false, left: false, right: false };
 let proximityColoringEnabled = false;
 let proximityColorClose = '#ff6b6b'; // Color for boids close to neighbors
 let proximityColorFar = '#4ecdc4'; // Color for boids far from neighbors
+let proximityColorCloseRgb = hexToRgb(proximityColorClose);
+let proximityColorFarRgb = hexToRgb(proximityColorFar);
 const selectedBoidColor = 'rgba(0, 123, 255, 1)'; // Deep vibrant blue (reverted)
 const defaultBoidColor = 'rgba(249, 253, 249, 0.7)'; // Default Off-White for boids
 
 // Navigation functionality
 document.addEventListener('DOMContentLoaded', function () {
-    const navLinks = document.querySelectorAll('.nav-links a, .cta-button[data-section]');
-    const readMoreLinks = document.querySelectorAll('.read-more[data-article]');
+    const navLinks = document.querySelectorAll('.nav-links a[data-section], .cta-button[data-section], .logo[data-section]');
     const sections = document.querySelectorAll('.section');
-    const articleSections = document.querySelectorAll('.article-section');
     const canvas = document.getElementById('flocking-canvas');
+    const mainContent = document.querySelector('main');
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const navLinksContainer = document.querySelector('.nav-links');
-    const backButton = document.getElementById('back-button');
+
+    function closeMobileMenu() {
+        navLinksContainer.classList.remove('show');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+    }
 
     // Mobile menu toggle
     mobileMenuBtn.addEventListener('click', function () {
-        navLinksContainer.classList.toggle('show');
+        const isOpen = navLinksContainer.classList.toggle('show');
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
     function showSection(targetSection) {
-        // Hide all sections and articles
+        if (!targetSection) return;
+
+        const target = document.getElementById(targetSection);
+        if (!target) return;
+
+        // Hide all sections
         sections.forEach(section => {
             section.classList.remove('active');
         });
-        articleSections.forEach(article => {
-            article.classList.remove('active');
-        });
-
-        // Show target section
-        const target = document.getElementById(targetSection);
-        if (target) {
-            target.classList.add('active');
-        }
+        target.classList.add('active');
 
         // Scroll the main container to the top so content is visible immediately
-        document.querySelector('main').scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        mainContent.scrollTo({ top: 0, left: 0, behavior: 'auto' });
 
         // Update active nav link
-        navLinks.forEach(link => {
+        document.querySelectorAll('.nav-links a[data-section]').forEach(link => {
             link.classList.remove('active');
         });
 
@@ -51,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
             activeNavLink.classList.add('active');
         }
 
+        history.replaceState(null, '', `#${targetSection}`);
+
         // Adjust simulation opacity
         if (targetSection === 'home') {
             canvas.style.opacity = '0.9'; // Homepage opacity
@@ -58,46 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
             canvas.style.opacity = '0.2'; // Subtle opacity for all other sections
         }
 
-        // Hide back button
-        backButton.classList.remove('show');
-        document.body.classList.remove('article-page');
-
         // Close mobile menu
-        navLinksContainer.classList.remove('show');
-    }
-
-    function showArticle(articleId) {
-        // Hide all sections and articles
-        sections.forEach(section => {
-            section.classList.remove('active');
-        });
-        articleSections.forEach(article => {
-            article.classList.remove('active');
-        });
-
-        // Show target article
-        const target = document.getElementById(articleId);
-        if (target) {
-            target.classList.add('active');
-        }
-
-        // Scroll the main container to the top so article content is visible immediately
-        document.querySelector('main').scrollTo({ top: 0, left: 0, behavior: 'auto' });
-
-        // Clear active nav links
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-        });
-
-        // Set very slow simulation for articles
-        canvas.style.opacity = '0.1';
-        document.body.classList.add('article-page');
-
-        // Show back button
-        backButton.classList.add('show');
-
-        // Close mobile menu
-        navLinksContainer.classList.remove('show');
+        closeMobileMenu();
     }
 
     // Add click listeners to navigation links
@@ -105,28 +72,16 @@ document.addEventListener('DOMContentLoaded', function () {
         link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetSection = this.getAttribute('data-section');
-            if (targetSection) {
-                showSection(targetSection);
-            }
+            showSection(targetSection);
         });
     });
 
-    // Add click listeners to read more links
-    readMoreLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            const articleId = this.getAttribute('data-article');
-            if (articleId) {
-                showArticle(articleId);
-            }
-        });
-    });
-
-    // Back button functionality
-    backButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        showSection('blog');
-    });
+    const initialSection = window.location.hash.replace('#', '');
+    if (initialSection && document.getElementById(initialSection)) {
+        showSection(initialSection);
+    } else {
+        showSection('home');
+    }
 
     // Initialize flocking simulation
     initFlockingSimulation();
@@ -167,6 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const proximityColorToggle = document.getElementById('proximityColorToggle');
     const proximityColorPickerClose = document.getElementById('proximityColorPickerClose');
     const proximityColorPickerFar = document.getElementById('proximityColorPickerFar');
+    proximityColorCloseRgb = hexToRgb(proximityColorClose);
+    proximityColorFarRgb = hexToRgb(proximityColorFar);
 
     if (proximityColorToggle) {
         proximityColorToggle.addEventListener('change', (e) => {
@@ -177,12 +134,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (proximityColorPickerClose) {
         proximityColorPickerClose.addEventListener('input', (e) => {
             proximityColorClose = e.target.value;
+            proximityColorCloseRgb = hexToRgb(proximityColorClose);
         });
     }
 
     if (proximityColorPickerFar) {
         proximityColorPickerFar.addEventListener('input', (e) => {
             proximityColorFar = e.target.value;
+            proximityColorFarRgb = hexToRgb(proximityColorFar);
         });
     }
 
@@ -233,23 +192,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Smooth scroll for nav links
-    document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth' });
-                // Optionally update active nav link (if needed)
-                updateActiveNavLink(targetId);
-                // Close mobile menu if open
-                if (navLinksContainer.classList.contains('show')) {
-                    navLinksContainer.classList.remove('show');
-                }
-            }
-        });
-    });
 });
 
 // Color utility functions
@@ -271,13 +213,13 @@ function interpolateColor(color1, color2, factor) {
 }
 
 function getProximityColor(distance, maxDistance, closeColor, farColor) {
-    const closeRgb = hexToRgb(closeColor);
-    const farRgb = hexToRgb(farColor);
+    const closeRgb = closeColor;
+    const farRgb = farColor;
 
     if (!closeRgb || !farRgb) return defaultBoidColor;
 
     // Normalize distance (0 = very close, 1 = far away)
-    const normalizedDistance = Math.min(distance / maxDistance, 1);
+    const normalizedDistance = maxDistance > 0 ? Math.min(distance / maxDistance, 1) : 1;
 
     // Interpolate between close color and far color
     const interpolated = interpolateColor(closeRgb, farRgb, normalizedDistance);
@@ -377,7 +319,15 @@ function initFlockingSimulation() {
         grid.resize(canvas.width, canvas.height);
     }
 
-    window.addEventListener('resize', resizeCanvas);
+    let resizeQueued = false;
+    window.addEventListener('resize', () => {
+        if (resizeQueued) return;
+        resizeQueued = true;
+        requestAnimationFrame(() => {
+            resizeQueued = false;
+            resizeCanvas();
+        });
+    });
     resizeCanvas();
 
     class Boid {
@@ -386,56 +336,30 @@ function initFlockingSimulation() {
             this.y = y;
             this.vx = vx;
             this.vy = vy;
+            this.nearestNeighborDistance = Infinity;
         }
 
-        findNearestNeighborDistance(grid) {
-            let minDistance = Infinity;
-            const neighbors = grid.getPotentialNeighbors(this);
-
-            for (const other of neighbors) {
-                if (other !== this) {
-                    let dx = this.x - other.x;
-                    let dy = this.y - other.y;
-
-                    // Handle wrap-around distance if enabled
-                    if (simulationParameters.wrapAround) {
-                        if (Math.abs(dx) > canvas.width / 2) dx = canvas.width - Math.abs(dx);
-                        if (Math.abs(dy) > canvas.height / 2) dy = canvas.height - Math.abs(dy);
-                    }
-
-                    const distance = Math.hypot(dx, dy);
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                    }
-                }
-            }
-            return minDistance;
-        }
-
-        draw(boids) {
+        draw(baseFont, selectedFont) {
             const emoji = ">";
             const size = simulationParameters.boidSize;
             let boidFillStyle = defaultBoidColor;
-            let fontWeight = ''; // Default no specific weight
 
             // Handle proximity coloring
-            if (proximityColoringEnabled && boids) { // boids here is actually the grid in the new implementation
-                const nearestDistance = this.findNearestNeighborDistance(boids); // passing grid
+            if (proximityColoringEnabled) {
                 const maxDistance = simulationParameters.perceptionRadius; // Use perception radius as max distance
-                boidFillStyle = getProximityColor(nearestDistance, maxDistance, proximityColorClose, proximityColorFar);
+                boidFillStyle = getProximityColor(this.nearestNeighborDistance, maxDistance, proximityColorCloseRgb, proximityColorFarRgb);
             }
 
             // Override with selected boid color if this is the selected boid
             if (this === youAreHereBoid) {
                 boidFillStyle = selectedBoidColor;
-                fontWeight = 'bold '; // Add bold prefix for selected boid
             }
 
             ctx.save();
             ctx.translate(this.x, this.y);
             const angle = Math.atan2(this.vy, this.vx);
             ctx.rotate(angle);
-            ctx.font = `${fontWeight}${size * 4}px ${boidFontFamily}`; /* Use computed font family and conditional bolding */
+            ctx.font = this === youAreHereBoid ? selectedFont : baseFont;
             ctx.fillStyle = boidFillStyle;
             ctx.fillText(emoji, -size, size);
             ctx.restore();
@@ -475,6 +399,7 @@ function initFlockingSimulation() {
         update(boids) {
             // Check if this boid is being manually controlled
             if (this === youAreHereBoid && manualControlEnabled) {
+                this.nearestNeighborDistance = Infinity;
                 this.updateManualControl();
                 return;
             }
@@ -484,6 +409,7 @@ function initFlockingSimulation() {
             let separation = { x: 0, y: 0 };
             let avoidance = { x: 0, y: 0 };
             let count = 0;
+            let nearestNeighborDistance = Infinity;
 
             // Keep boids within the boundary
             if (this.x < simulationParameters.boundary) this.vx += simulationParameters.maxForce * 2;
@@ -505,6 +431,7 @@ function initFlockingSimulation() {
                     }
 
                     const d = Math.hypot(dx, dy);
+                    if (d < nearestNeighborDistance) nearestNeighborDistance = d;
 
                     if (d < simulationParameters.perceptionRadius) {
                         alignment.x += other.vx;
@@ -606,6 +533,7 @@ function initFlockingSimulation() {
                     this.vy = (this.vy / speed) * simulationParameters.maxSpeed;
                 }
             }
+            this.nearestNeighborDistance = nearestNeighborDistance;
 
             // Update position
             this.x += this.vx;
@@ -626,7 +554,7 @@ function initFlockingSimulation() {
     const simulationParameters = {
         numBoids: 200,
         boidSize: 14,
-        maxSpeed: 1.3,
+        maxSpeed: 3.0,
         maxForce: 0.1,
         perceptionRadius: 70,
         avoidanceRadius: 30,
@@ -658,7 +586,17 @@ function initFlockingSimulation() {
     // Make initBoids available globally
     window.initBoids = initBoids;
 
-    function animate() {
+    const targetFps = 45;
+    const frameInterval = 1000 / targetFps;
+    let lastFrameTime = 0;
+
+    function animate(timestamp = 0) {
+        if (timestamp - lastFrameTime < frameInterval) {
+            requestAnimationFrame(animate);
+            return;
+        }
+        lastFrameTime = timestamp;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Update grid
@@ -671,8 +609,11 @@ function initFlockingSimulation() {
             boid.update(grid);
         }
 
+        const fontSize = simulationParameters.boidSize * 4;
+        const baseFont = `${fontSize}px ${boidFontFamily}`;
+        const selectedFont = `bold ${fontSize}px ${boidFontFamily}`;
         for (const boid of boids) {
-            boid.draw(grid);
+            boid.draw(baseFont, selectedFont);
         }
 
         requestAnimationFrame(animate);
@@ -713,12 +654,15 @@ function initFlockingSimulation() {
 
             lightboxImg.src = highResSrc;
             lightbox.classList.add('show');
+            lightbox.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden'; // Prevent scrolling
+            lightboxClose.focus();
         });
     });
 
     function closeLightbox() {
         lightbox.classList.remove('show');
+        lightbox.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = ''; // Restore scrolling
         setTimeout(() => {
             lightboxImg.src = '';
@@ -801,8 +745,10 @@ function initFlockingSimulation() {
     const menu = document.getElementById('parameter-menu');
 
     if (toggleButton && menu) {
+        toggleButton.setAttribute('aria-expanded', 'false');
         toggleButton.addEventListener('click', () => {
-            menu.classList.toggle('show');
+            const isOpen = menu.classList.toggle('show');
+            toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
     }
 
