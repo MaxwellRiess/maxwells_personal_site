@@ -17,10 +17,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const mainContent = document.querySelector('main');
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const navLinksContainer = document.querySelector('.nav-links');
+    const logoWordmark = document.querySelector('.logo-wordmark');
 
     function closeMobileMenu() {
         navLinksContainer.classList.remove('show');
         mobileMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function updateLogoState(targetSection) {
+        if (!logoWordmark) return;
+        logoWordmark.classList.toggle('is-condensed', targetSection !== 'home');
     }
 
     // Mobile menu toggle
@@ -62,6 +68,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             canvas.style.opacity = '0.2'; // Subtle opacity for all other sections
         }
+
+        updateLogoState(targetSection);
 
         // Close mobile menu
         closeMobileMenu();
