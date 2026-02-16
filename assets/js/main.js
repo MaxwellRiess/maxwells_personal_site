@@ -18,6 +18,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     const navLinksContainer = document.querySelector('.nav-links');
     const logoWordmark = document.querySelector('.logo-wordmark');
+    let logoMetricsQueued = false;
+
+    function syncWordmarkMetrics() {
+        if (!logoWordmark) return;
+
+        const segments = logoWordmark.querySelectorAll('.logo-segment');
+
+        segments.forEach(segment => {
+            const tail = segment.querySelector('.logo-tail');
+            if (!tail) return;
+
+            const measuredTailWidth = Math.ceil(tail.scrollWidth);
+            tail.style.setProperty('--logo-tail-width', `${measuredTailWidth}px`);
+            tail.style.setProperty('--collapse-shift', `${-measuredTailWidth}px`);
+        });
+    }
+
+    function queueWordmarkMetricsSync() {
+        if (logoMetricsQueued) return;
+        logoMetricsQueued = true;
+        requestAnimationFrame(() => {
+            logoMetricsQueued = false;
+            syncWordmarkMetrics();
+        });
+    }
 
     function closeMobileMenu() {
         navLinksContainer.classList.remove('show');
@@ -34,6 +59,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const isOpen = navLinksContainer.classList.toggle('show');
         mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
+
+    syncWordmarkMetrics();
+    queueWordmarkMetricsSync();
+    window.addEventListener('resize', queueWordmarkMetricsSync);
+    if (document.fonts?.ready) {
+        document.fonts.ready.then(queueWordmarkMetricsSync);
+    }
 
     function showSection(targetSection) {
         if (!targetSection) return;
