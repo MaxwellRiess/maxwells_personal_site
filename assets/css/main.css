@@ -124,14 +124,15 @@ nav {
     overflow: hidden;
     white-space: nowrap;
     margin-left: 0.01em;
+    margin-right: 0;
     inline-size: var(--logo-tail-width, auto);
     transform: translate3d(0, 0, 0);
-    will-change: transform, inline-size, margin-left;
+    will-change: transform, margin-left, margin-right;
     backface-visibility: hidden;
     transition:
         transform var(--logo-slide-duration) var(--logo-slide-ease),
-        inline-size var(--logo-pack-duration) var(--logo-slide-ease),
-        margin-left var(--logo-pack-duration) var(--logo-slide-ease);
+        margin-left var(--logo-pack-duration) var(--logo-slide-ease),
+        margin-right var(--logo-pack-duration) var(--logo-slide-ease);
 }
 
 .logo-wordmark.is-condensed .logo-segment {
@@ -139,14 +140,14 @@ nav {
 }
 
 .logo-wordmark.is-condensed .logo-tail {
-    inline-size: 0;
     margin-left: 0;
+    margin-right: calc(-1 * var(--logo-tail-width, 0px));
     transform: translate3d(var(--collapse-shift, 0px), 0, 0);
 }
 
 .logo-wordmark:not(.is-condensed) .logo-tail {
-    inline-size: var(--logo-tail-width, auto);
     margin-left: 0.01em;
+    margin-right: 0;
     transform: translate3d(0, 0, 0);
 }
 
