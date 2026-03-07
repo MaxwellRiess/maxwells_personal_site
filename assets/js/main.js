@@ -794,6 +794,7 @@ function initFlockingSimulation() {
         toggleButton.setAttribute('aria-expanded', 'false');
         toggleButton.addEventListener('click', () => {
             const isOpen = menu.classList.toggle('show');
+            toggleButton.classList.toggle('panel-open', isOpen);
             toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
     }
