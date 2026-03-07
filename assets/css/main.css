@@ -104,18 +104,7 @@ nav {
     font-style: var(--font-style-heading);
 }
 
-.logo-initial::after {
-    content: '';
-    position: absolute;
-    top: -0.1em;
-    bottom: -0.08em;
-    left: -0.08em;
-    right: -0.06em;
-    background: rgba(38, 45, 36, 0.96);
-    border-radius: 0.08em;
-    z-index: -1;
-    pointer-events: none;
-}
+
 
 .logo-tail {
     position: relative;
@@ -127,12 +116,14 @@ nav {
     margin-right: 0;
     inline-size: var(--logo-tail-width, auto);
     transform: translate3d(0, 0, 0);
-    will-change: transform, margin-left, margin-right;
+    clip-path: inset(0 0 0 0);
+    will-change: transform, clip-path;
     backface-visibility: hidden;
     transition:
         transform var(--logo-slide-duration) var(--logo-slide-ease),
         margin-left var(--logo-pack-duration) var(--logo-slide-ease),
-        margin-right var(--logo-pack-duration) var(--logo-slide-ease);
+        margin-right var(--logo-pack-duration) var(--logo-slide-ease),
+        clip-path var(--logo-slide-duration) var(--logo-slide-ease);
 }
 
 .logo-wordmark.is-condensed .logo-segment {
@@ -143,6 +134,7 @@ nav {
     margin-left: 0;
     margin-right: calc(-1 * var(--logo-tail-width, 0px));
     transform: translate3d(var(--collapse-shift, 0px), 0, 0);
+    clip-path: inset(0 0 0 calc(-1 * var(--collapse-shift, 0px)));
 }
 
 .logo-wordmark:not(.is-condensed) .logo-tail {

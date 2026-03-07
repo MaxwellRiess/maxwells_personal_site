@@ -55,10 +55,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Mobile menu toggle
-    mobileMenuBtn.addEventListener('click', function () {
-        const isOpen = navLinksContainer.classList.toggle('show');
-        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function () {
+            const isOpen = navLinksContainer.classList.toggle('show');
+            mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+    }
 
     syncWordmarkMetrics();
     queueWordmarkMetricsSync();
@@ -709,20 +711,24 @@ function initFlockingSimulation() {
         }, 300);
     }
 
-    lightboxClose.addEventListener('click', closeLightbox);
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', closeLightbox);
+    }
 
-    lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) {
-            closeLightbox();
-        }
-    });
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        });
 
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lightbox.classList.contains('show')) {
-            closeLightbox();
-        }
-    });
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('show')) {
+                closeLightbox();
+            }
+        });
+    }
 
     // Parameter controls
     const controls = [

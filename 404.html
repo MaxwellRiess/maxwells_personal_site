@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where are you? | Maxwell Josef Riess</title>
+    <meta name="robots" content="noindex">
+    <link rel="preload" href="assets/fonts/rothek-extralight-webfont-full/webfonts/rothek-extralight.woff2" as="font"
+        type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/rothek-bold-italic-webfont-full/webfonts/rothek-bold-italic.woff2" as="font"
+        type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="assets/css/fonts.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/main.css?v=2.2">
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <style>
+        .four-oh-four {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .four-oh-four h1 {
+            font-family: var(--font-heading);
+            font-weight: var(--font-weight-bold);
+            font-style: var(--font-style-heading);
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: #FEFEFE;
+            margin-bottom: 1rem;
+        }
+
+        .four-oh-four a {
+            pointer-events: auto;
+            color: #E1E6E0;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 2px;
+            transition: color 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .four-oh-four a:hover {
+            color: #FEFEFE;
+        }
+
+        .four-oh-four a:focus-visible {
+            outline: 2px solid #FEFEFE;
+            outline-offset: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="flocking-canvas"></canvas>
+
+    <div class="four-oh-four">
+        <h1>Where are you?</h1>
+        <a href="/">Go home</a>
+    </div>
+
+    <!-- Simulation Controls -->
+    <div id="simulation-controls">
+        <button id="toggle-menu-button">Controls</button>
+        <div id="parameter-menu">
+            <div class="parameter-categories">
+                <div class="category-tab active" data-category="population"><img
+                        src="assets/images/population_symbol.png" alt="Population" class="category-icon"></div>
+                <div class="category-tab" data-category="movement"><img src="assets/images/movement_symbol.png"
+                        alt="Movement" class="category-icon"></div>
+                <div class="category-tab" data-category="perception"><img src="assets/images/perception_symbol.png"
+                        alt="Perception" class="category-icon"></div>
+                <div class="category-tab" data-category="behavior"><img src="assets/images/behaviour_symbol.png"
+                        alt="Behavior" class="category-icon"></div>
+            </div>
+
+            <div class="parameter-category active" data-category="population">
+                <div class="parameter-group">
+                    <label for="numBoids">Population: <span id="numBoidsValue">200</span></label>
+                    <input type="range" id="numBoids" min="10" max="500" value="200">
+                </div>
+                <div class="parameter-group">
+                    <label for="boidSize">Size: <span id="boidSizeValue">5</span></label>
+                    <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
+                </div>
+            </div>
+
+            <div class="parameter-category" data-category="movement">
+                <div class="parameter-group">
+                    <label for="maxSpeed">Speed: <span id="maxSpeedValue">3.0</span></label>
+                    <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="3.0">
+                </div>
+                <div class="parameter-group">
+                    <label for="maxForce">Force: <span id="maxForceValue">0.1</span></label>
+                    <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
+                </div>
+            </div>
+
+            <div class="parameter-category" data-category="perception">
+                <div class="parameter-group">
+                    <label for="perceptionRadius">Perception: <span id="perceptionRadiusValue">17</span></label>
+                    <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+                </div>
+                <div class="parameter-group">
+                    <label for="avoidanceRadius">Personal Space:<span id="avoidanceRadiusValue">20</span></label>
+                    <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+                </div>
+            </div>
+
+            <div class="parameter-category" data-category="behavior">
+                <div class="parameter-group">
+                    <label for="cohesionWeight">Attraction: <span id="cohesionWeightValue">11.0</span></label>
+                    <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
+                </div>
+                <div class="parameter-group">
+                    <label for="separationWeight">Separation: <span id="separationWeightValue">1.8</span></label>
+                    <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
+                </div>
+                <div class="parameter-group">
+                    <label for="alignmentWeight">Alignment: <span id="alignmentWeightValue">1.5</span></label>
+                    <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
+                </div>
+                <div class="parameter-group">
+                    <label for="avoidanceWeight">Self control:<span id="avoidanceWeightValue">1.0</span></label>
+                    <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/main.js" defer></script>
+</body>
+
+</html>
