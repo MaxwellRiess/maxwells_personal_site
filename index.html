@@ -25,12 +25,12 @@
         type="font/woff2" crossorigin>
     <script>document.documentElement.classList.add('js-enabled');</script>
     <link rel="stylesheet" href="assets/css/fonts.css?v=2.2">
-    <link rel="stylesheet" href="assets/css/main.css?v=2.2">
+    <link rel="stylesheet" href="assets/css/main.css?v=4">
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
 </head>
 
 <body>
-    <canvas id="flocking-canvas"></canvas>
+    <canvas id="flocking-canvas" aria-hidden="true"></canvas>
 
     <nav aria-label="Primary">
         <div class="nav-container">
@@ -390,10 +390,9 @@
         <section id="contact" class="section">
             <div class="container">
                 <div class="content-section">
-                    <h2 class="section-title">Get In Touch</h2>
+                    <h2 class="section-title">Don't be a stranger</h2>
                     <p class="section-intro">
-                        Interested in discussing digital transformation, product strategy, or just want to chat about
-                        pottery? I'd love to hear from you.
+                        I love hearing from people that share my interests.
                     </p>
                     <div class="contact-links">
                         <a href="mailto:maxwell@maxwellriess.com" class="email-link">maxwell@maxwellriess.com</a>
@@ -405,69 +404,80 @@
 
     <!-- Simulation Controls -->
     <div id="simulation-controls">
-        <button id="toggle-menu-button">Controls</button>
-        <div id="parameter-menu">
-            <div class="parameter-categories">
-                <div class="category-tab active" data-category="population">Population</div>
-                <div class="category-tab" data-category="movement">Movement</div>
-                <div class="category-tab" data-category="perception">Senses</div>
-                <div class="category-tab" data-category="behavior">Behavior</div>
+        <div class="simulation-toolbar">
+            <button id="pause-simulation" type="button" aria-label="Pause flock animation">Pause</button>
+            <button id="toggle-menu-button" type="button" aria-expanded="false" aria-controls="parameter-menu">Controls</button>
+        </div>
+        <span id="simulation-status" class="sr-only" role="status"></span>
+        <div id="parameter-menu" hidden>
+            <div class="parameter-categories" role="tablist" aria-label="Simulation settings">
+                <button type="button" class="category-tab active" id="tab-population" role="tab" aria-selected="true" aria-controls="panel-population" tabindex="0" data-category="population">Population</button>
+                <button type="button" class="category-tab" id="tab-movement" role="tab" aria-selected="false" aria-controls="panel-movement" tabindex="-1" data-category="movement">Movement</button>
+                <button type="button" class="category-tab" id="tab-perception" role="tab" aria-selected="false" aria-controls="panel-perception" tabindex="-1" data-category="perception">Senses</button>
+                <button type="button" class="category-tab" id="tab-behavior" role="tab" aria-selected="false" aria-controls="panel-behavior" tabindex="-1" data-category="behavior">Behavior</button>
             </div>
 
             <div class="parameter-panel-body">
-                <div class="parameter-category active" data-category="population">
+                <div class="parameter-category active" id="panel-population" role="tabpanel" aria-labelledby="tab-population" data-category="population">
                     <div class="parameter-group">
-                        <label for="numBoids">Population <span id="numBoidsValue">200</span></label>
-                        <input type="range" id="numBoids" min="10" max="500" value="200">
+                        <label for="numBoids">Population <span id="numBoidsValue"></span></label>
+                        <input type="range" id="numBoids" min="10" max="500">
                     </div>
                     <div class="parameter-group">
-                        <label for="boidSize">Size <span id="boidSizeValue">5</span></label>
-                        <input type="range" id="boidSize" min="1" max="20" step="1" value="5">
-                    </div>
-                </div>
-
-                <div class="parameter-category" data-category="movement">
-                    <div class="parameter-group">
-                        <label for="maxSpeed">Speed <span id="maxSpeedValue">3.0</span></label>
-                        <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1" value="3.0">
-                    </div>
-                    <div class="parameter-group">
-                        <label for="maxForce">Force <span id="maxForceValue">0.1</span></label>
-                        <input type="range" id="maxForce" min="0.01" max="2" step="0.01" value="0.1">
+                        <label for="boidSize">Size <span id="boidSizeValue"></span></label>
+                        <input type="range" id="boidSize" min="1" max="20" step="1">
                     </div>
                 </div>
 
-                <div class="parameter-category" data-category="perception">
+                <div class="parameter-category" id="panel-movement" role="tabpanel" aria-labelledby="tab-movement" data-category="movement" hidden>
                     <div class="parameter-group">
-                        <label for="perceptionRadius">Perception <span id="perceptionRadiusValue">17</span></label>
-                        <input type="range" id="perceptionRadius" min="5" max="100" value="17">
+                        <label for="maxSpeed">Speed <span id="maxSpeedValue"></span></label>
+                        <input type="range" id="maxSpeed" min="0.1" max="10" step="0.1">
                     </div>
                     <div class="parameter-group">
-                        <label for="avoidanceRadius">Personal space <span id="avoidanceRadiusValue">20</span></label>
-                        <input type="range" id="avoidanceRadius" min="5" max="50" value="20">
+                        <label for="maxForce">Turning force <span id="maxForceValue"></span></label>
+                        <input type="range" id="maxForce" min="0.01" max="2" step="0.01">
                     </div>
                 </div>
 
-                <div class="parameter-category" data-category="behavior">
+                <div class="parameter-category" id="panel-perception" role="tabpanel" aria-labelledby="tab-perception" data-category="perception" hidden>
                     <div class="parameter-group">
-                        <label for="cohesionWeight">Attraction <span id="cohesionWeightValue">11.0</span></label>
-                        <input type="range" id="cohesionWeight" min="0" max="50" step="0.1" value="11.0">
+                        <label for="perceptionRadius">Perception <span id="perceptionRadiusValue"></span></label>
+                        <input type="range" id="perceptionRadius" min="5" max="300">
                     </div>
                     <div class="parameter-group">
-                        <label for="separationWeight">Separation <span id="separationWeightValue">1.8</span></label>
-                        <input type="range" id="separationWeight" min="0" max="10" step="0.1" value="1.8">
+                        <label for="alignmentRadius">Alignment range <span id="alignmentRadiusValue"></span></label>
+                        <input type="range" id="alignmentRadius" min="0" max="150" step="1">
                     </div>
                     <div class="parameter-group">
-                        <label for="alignmentWeight">Alignment <span id="alignmentWeightValue">1.5</span></label>
-                        <input type="range" id="alignmentWeight" min="0" max="5" step="0.1" value="1.5">
+                        <label for="avoidanceRadius">Personal space <span id="avoidanceRadiusValue"></span></label>
+                        <input type="range" id="avoidanceRadius" min="5" max="50">
+                    </div>
+                </div>
+
+                <div class="parameter-category" id="panel-behavior" role="tabpanel" aria-labelledby="tab-behavior" data-category="behavior" hidden>
+                    <div class="parameter-group">
+                        <label for="cohesionWeight">Attraction <span id="cohesionWeightValue"></span></label>
+                        <input type="range" id="cohesionWeight" min="0" max="5" step="0.05">
                     </div>
                     <div class="parameter-group">
-                        <label for="avoidanceWeight">Self control <span id="avoidanceWeightValue">1.0</span></label>
-                        <input type="range" id="avoidanceWeight" min="0" max="5" step="0.1" value="1.0">
-                        <!-- Hidden easter egg - only shows when self control is at maximum (5) -->
-                        <div id="hiddenControl" class="hidden-control">
-                            <button id="manualControlButton" class="cta-button manual-control-btn">Take Control</button>
-                            <p class="hidden-control-hint">Use arrow keys to fly</p>
+                        <label for="separationWeight">Separation <span id="separationWeightValue"></span></label>
+                        <input type="range" id="separationWeight" min="0" max="10" step="0.1">
+                    </div>
+                    <div class="parameter-group">
+                        <label for="alignmentWeight">Alignment <span id="alignmentWeightValue"></span></label>
+                        <input type="range" id="alignmentWeight" min="0" max="5" step="0.1">
+                    </div>
+                    <div class="parameter-group">
+                        <label for="wander">Wander <span id="wanderValue"></span></label>
+                        <input type="range" id="wander" min="0" max="1" step="0.01">
+                    </div>
+                    <div class="parameter-group">
+                        <label for="selfControl">Self control <span id="selfControlValue">1</span></label>
+                        <input type="range" id="selfControl" min="0" max="5" step="0.1" value="1">
+                        <div id="hiddenControl" hidden>
+                            <button type="button" id="manualControlButton" class="cta-button manual-control-btn" aria-pressed="false" aria-describedby="manual-control-hint">Take Control</button>
+                            <p id="manual-control-hint">Use arrow keys to fly.</p>
                         </div>
                     </div>
                     <div class="parameter-group parameter-group-divider">
@@ -486,17 +496,18 @@
             </div>
 
             <div class="parameter-footer">
-                <button id="youAreHereButton" class="cta-button you-are-here-btn">You Are Here</button>
+                <button type="button" id="youAreHereButton" class="cta-button you-are-here-btn">You Are Here</button>
             </div>
         </div>
     </div>
 
-    <div id="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+    <div id="lightbox" role="dialog" aria-label="Enlarged pottery image" aria-modal="true" aria-hidden="true" hidden>
         <button id="lightbox-close" type="button" aria-label="Close full screen image">&times;</button>
         <img id="lightbox-img" src="" alt="Full screen pottery">
     </div>
 
-    <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/flock.js?v=4" defer></script>
+    <script src="assets/js/main.js?v=4" defer></script>
 </body>
 
 </html>

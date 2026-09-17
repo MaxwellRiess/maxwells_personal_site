@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeMobileMenu() {
         navLinksContainer.classList.remove('show');
         mobileMenuBtn.setAttribute('aria-expanded', 'false');
+        mobileMenuBtn.setAttribute('aria-label', 'Open navigation menu');
     }
 
     function updateLogoState(targetSection) {
@@ -58,7 +59,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', function () {
             const isOpen = navLinksContainer.classList.toggle('show');
-            mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            mobileMenuBtn.setAttribute('aria-expanded', String(isOpen));
+            mobileMenuBtn.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
         });
     }
 
@@ -69,174 +71,56 @@ document.addEventListener('DOMContentLoaded', function () {
         document.fonts.ready.then(queueWordmarkMetricsSync);
     }
 
-    function showSection(targetSection) {
-        if (!targetSection) return;
-
-        const target = document.getElementById(targetSection);
-        if (!target) return;
-
-        // Hide all sections
-        sections.forEach(section => {
-            section.classList.remove('active');
+    const sectionIds = new Set(Array.from(sections, section => section.id));
+    function showSection(id, focus = false) {
+        if (!sectionIds.has(id)) id = 'home';
+        const target = document.getElementById(id);
+        sections.forEach(section => section.classList.toggle('active', section === target));
+        navLinks.forEach(link => {
+            const active = link.dataset.section === id;
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
         });
-        target.classList.add('active');
-
-        // Scroll the main container to the top so content is visible immediately
-        mainContent.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-
-        // Update active nav link
-        document.querySelectorAll('.nav-links a[data-section]').forEach(link => {
-            link.classList.remove('active');
-        });
-
-        const activeNavLink = document.querySelector(`.nav-links a[data-section="${targetSection}"]`);
-        if (activeNavLink) {
-            activeNavLink.classList.add('active');
-        }
-
-        history.replaceState(null, '', `#${targetSection}`);
-
-        // Adjust simulation opacity
-        if (targetSection === 'home') {
-            canvas.style.opacity = '0.9'; // Homepage opacity
-        } else {
-            canvas.style.opacity = '0.2'; // Subtle opacity for all other sections
-        }
-
-        updateLogoState(targetSection);
-
-        // Close mobile menu
         closeMobileMenu();
+        updateLogoState(id);
+        canvas.style.opacity = id === 'home' ? '0.9' : '0.2';
+        if (focus) {
+            const heading = target.querySelector('h1, h2') || target;
+            heading.tabIndex = -1;
+            heading.focus({ preventScroll: true });
+        }
+        // Desktop scrolls main; mobile CSS also makes body a scroll container.
+        mainContent.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.dispatchEvent(new Event('sectionchange'));
     }
-
-    // Add click listeners to navigation links
-    navLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetSection = this.getAttribute('data-section');
-            showSection(targetSection);
-        });
+    function readLocation(focus = false) {
+        const id = location.hash.slice(1);
+        if (!sectionIds.has(id)) history.replaceState(null, '', '#home');
+        showSection(sectionIds.has(id) ? id : 'home', focus);
+    }
+    history.scrollRestoration = 'manual';
+    navLinks.forEach(link => link.addEventListener('click', event => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const id = link.dataset.section;
+        if (location.hash !== '#' + id) history.pushState(null, '', '#' + id);
+        showSection(id, true);
+    }));
+    window.addEventListener('popstate', () => readLocation(true));
+    window.addEventListener('hashchange', () => readLocation(true));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && navLinksContainer.classList.contains('show')) {
+            closeMobileMenu(); mobileMenuBtn.focus();
+        }
     });
-
-    const initialSection = window.location.hash.replace('#', '');
-    if (initialSection && document.getElementById(initialSection)) {
-        showSection(initialSection);
-    } else {
-        showSection('home');
-    }
-
-    // Initialize flocking simulation
+    readLocation();
     initFlockingSimulation();
-
-    const youAreHereButton = document.getElementById('youAreHereButton');
-    if (youAreHereButton) {
-        youAreHereButton.addEventListener('click', () => {
-            if (window.boids && window.boids.length > 0) {
-                const randomIndex = Math.floor(Math.random() * window.boids.length);
-                youAreHereBoid = window.boids[randomIndex];
-            }
-        });
-    }
-
-    const manualControlButton = document.getElementById('manualControlButton');
-    if (manualControlButton) {
-        manualControlButton.addEventListener('click', () => {
-            manualControlEnabled = !manualControlEnabled;
-
-            if (manualControlEnabled) {
-                if (!youAreHereBoid && window.boids && window.boids.length > 0) {
-                    // If no boid is selected, select one automatically
-                    const randomIndex = Math.floor(Math.random() * window.boids.length);
-                    youAreHereBoid = window.boids[randomIndex];
-                }
-                manualControlButton.textContent = 'Release Control';
-                manualControlButton.style.backgroundColor = 'rgba(0, 123, 255, 0.8)';
-            } else {
-                manualControlButton.textContent = 'Take Control';
-                manualControlButton.style.backgroundColor = 'rgba(89, 95, 87, 0.8)';
-                // Reset keyboard input when disabling control
-                keyboardInput = { up: false, down: false, left: false, right: false };
-            }
-        });
-    }
-
-    // Proximity coloring controls
-    const proximityColorToggle = document.getElementById('proximityColorToggle');
-    const proximityColorPickerClose = document.getElementById('proximityColorPickerClose');
-    const proximityColorPickerFar = document.getElementById('proximityColorPickerFar');
-    proximityColorCloseRgb = hexToRgb(proximityColorClose);
-    proximityColorFarRgb = hexToRgb(proximityColorFar);
-
-    if (proximityColorToggle) {
-        proximityColorToggle.addEventListener('change', (e) => {
-            proximityColoringEnabled = e.target.checked;
-        });
-    }
-
-    if (proximityColorPickerClose) {
-        proximityColorPickerClose.addEventListener('input', (e) => {
-            proximityColorClose = e.target.value;
-            proximityColorCloseRgb = hexToRgb(proximityColorClose);
-        });
-    }
-
-    if (proximityColorPickerFar) {
-        proximityColorPickerFar.addEventListener('input', (e) => {
-            proximityColorFar = e.target.value;
-            proximityColorFarRgb = hexToRgb(proximityColorFar);
-        });
-    }
-
-    // Keyboard event listeners for manual control
-    document.addEventListener('keydown', (e) => {
-        if (!manualControlEnabled || !youAreHereBoid) return;
-
-        switch (e.key) {
-            case 'ArrowUp':
-                keyboardInput.up = true;
-                e.preventDefault();
-                break;
-            case 'ArrowDown':
-                keyboardInput.down = true;
-                e.preventDefault();
-                break;
-            case 'ArrowLeft':
-                keyboardInput.left = true;
-                e.preventDefault();
-                break;
-            case 'ArrowRight':
-                keyboardInput.right = true;
-                e.preventDefault();
-                break;
-        }
-    });
-
-    document.addEventListener('keyup', (e) => {
-        if (!manualControlEnabled || !youAreHereBoid) return;
-
-        switch (e.key) {
-            case 'ArrowUp':
-                keyboardInput.up = false;
-                e.preventDefault();
-                break;
-            case 'ArrowDown':
-                keyboardInput.down = false;
-                e.preventDefault();
-                break;
-            case 'ArrowLeft':
-                keyboardInput.left = false;
-                e.preventDefault();
-                break;
-            case 'ArrowRight':
-                keyboardInput.right = false;
-                e.preventDefault();
-                break;
-        }
-    });
-
+    initLightbox();
 });
 
-// Color utility functions
 function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -272,551 +156,220 @@ function getProximityColor(distance, maxDistance, closeColor, farColor) {
     return `rgba(${interpolated.r}, ${interpolated.g}, ${interpolated.b}, ${alpha})`;
 }
 
-// Flocking Simulation Code
 function initFlockingSimulation() {
     const canvas = document.getElementById('flocking-canvas');
     const ctx = canvas.getContext('2d');
+    const font = getComputedStyle(document.documentElement).getPropertyValue('--font-heading').trim();
+    const simulation = new Flock.Simulation(innerWidth, innerHeight, {}, Math.floor(Math.random() * 4294967295));
+    const parameters = simulation.parameters;
+    const clock = new Flock.FixedClock();
+    const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+    const pauseButton = document.getElementById('pause-simulation');
+    const manualButton = document.getElementById('manualControlButton');
+    const status = document.getElementById('simulation-status');
+    const hiddenControl = document.getElementById('hiddenControl');
+    const selfControl = document.getElementById('selfControl');
+    const controls = Object.keys(Flock.defaults).filter(key => document.getElementById(key));
+    let paused = motionPreference.matches;
+    let frame = null;
+    let dialogOpen = false;
+    // Retain the existing inspection hooks for experimenting in developer tools.
+    window.simulationParameters = parameters;
+    window.boids = simulation.boids;
 
-    // Get the font family for boids once
-    const computedStyleForBoids = getComputedStyle(document.documentElement);
-    const boidFontFamily = computedStyleForBoids.getPropertyValue('--font-heading').trim();
-
-    // Spatial Grid for optimization
-    class SpatialGrid {
-        constructor(width, height, cellSize) {
-            this.cellSize = cellSize;
-            this.width = width;
-            this.height = height;
-            this.initCells();
-        }
-
-        initCells() {
-            this.cols = Math.ceil(this.width / this.cellSize);
-            this.rows = Math.ceil(this.height / this.cellSize);
-            this.cells = new Array(this.cols * this.rows).fill(null).map(() => []);
-        }
-
-        resize(width, height) {
-            this.width = width;
-            this.height = height;
-            this.initCells();
-        }
-
-        clear() {
-            for (let i = 0; i < this.cells.length; i++) {
-                this.cells[i].length = 0;
+    function clearInput() { keyboardInput = { up: false, down: false, left: false, right: false }; }
+    function releaseControl() {
+        manualControlEnabled = false; clearInput();
+        manualButton.textContent = 'Take Control'; manualButton.setAttribute('aria-pressed', 'false');
+        simulation.capSpeeds();
+    }
+    function draw() {
+        ctx.clearRect(0, 0, simulation.width, simulation.height);
+        const size = parameters.boidSize;
+        for (const boid of simulation.boids) {
+            const selected = boid === youAreHereBoid;
+            const color = selected ? selectedBoidColor : proximityColoringEnabled ?
+                getProximityColor(boid.nearestNeighborDistance, parameters.perceptionRadius, proximityColorCloseRgb, proximityColorFarRgb) : defaultBoidColor;
+            // Render copies at the edges without moving physics positions outside the torus.
+            const xs = [boid.x], ys = [boid.y];
+            const margin = size * 4;
+            if (boid.x < margin) xs.push(boid.x + simulation.width);
+            if (boid.x > simulation.width - margin) xs.push(boid.x - simulation.width);
+            if (boid.y < margin) ys.push(boid.y + simulation.height);
+            if (boid.y > simulation.height - margin) ys.push(boid.y - simulation.height);
+            for (const x of xs) for (const y of ys) {
+                ctx.save(); ctx.translate(x, y); ctx.rotate(Math.atan2(boid.vy, boid.vx));
+                ctx.font = `${selected ? 'bold ' : ''}${size * 4}px ${font}`;
+                ctx.fillStyle = color; ctx.fillText('>', -size, size); ctx.restore();
             }
-        }
-
-        add(boid) {
-            const col = Math.floor(boid.x / this.cellSize);
-            const row = Math.floor(boid.y / this.cellSize);
-            // Handle boundary conditions
-            if (col >= 0 && col < this.cols && row >= 0 && row < this.rows) {
-                this.cells[row * this.cols + col].push(boid);
-            }
-        }
-
-        // Get potential neighbors from adjacent cells
-        getPotentialNeighbors(boid) {
-            const col = Math.floor(boid.x / this.cellSize);
-            const row = Math.floor(boid.y / this.cellSize);
-            const neighbors = [];
-
-            for (let r = row - 1; r <= row + 1; r++) {
-                for (let c = col - 1; c <= col + 1; c++) {
-                    if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-                        const cell = this.cells[r * this.cols + c];
-                        for (let i = 0; i < cell.length; i++) {
-                            neighbors.push(cell[i]);
-                        }
-                    } else if (simulationParameters.wrapAround) {
-                        // Handle wrap-around for grid queries
-                        let wrappedR = r;
-                        let wrappedC = c;
-
-                        if (r < 0) wrappedR = this.rows - 1;
-                        else if (r >= this.rows) wrappedR = 0;
-
-                        if (c < 0) wrappedC = this.cols - 1;
-                        else if (c >= this.cols) wrappedC = 0;
-
-                        const cell = this.cells[wrappedR * this.cols + wrappedC];
-                        for (let i = 0; i < cell.length; i++) {
-                            neighbors.push(cell[i]);
-                        }
-                    }
-                }
-            }
-            return neighbors;
         }
     }
-
-    // Initialize grid with cell size slightly larger than max perception radius
-    const grid = new SpatialGrid(window.innerWidth, window.innerHeight, 100);
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        grid.resize(canvas.width, canvas.height);
+    function running() { return !paused && !document.hidden && !dialogOpen; }
+    function animate(timestamp) {
+        frame = null;
+        if (!running()) return;
+        clock.advance(timestamp, dt => simulation.step(dt, manualControlEnabled ? youAreHereBoid?.id : null, keyboardInput));
+        draw(); frame = requestAnimationFrame(animate);
     }
-
-    let resizeQueued = false;
-    window.addEventListener('resize', () => {
-        if (resizeQueued) return;
-        resizeQueued = true;
-        requestAnimationFrame(() => {
-            resizeQueued = false;
-            resizeCanvas();
-        });
+    function syncAnimation() {
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null; clock.reset(); clearInput();
+        pauseButton.textContent = paused ? 'Resume' : 'Pause';
+        pauseButton.setAttribute('aria-label', paused ? 'Resume flock animation' : 'Pause flock animation');
+        status.textContent = paused ? (motionPreference.matches ? 'Paused. Reduced motion is enabled.' : 'Animation paused.') : 'Animation running.';
+        draw();
+        if (running()) frame = requestAnimationFrame(animate);
+    }
+    function resize() {
+        simulation.resize(innerWidth, innerHeight);
+        const ratio = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(innerWidth * ratio); canvas.height = Math.round(innerHeight * ratio);
+        canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0); draw();
+    }
+    window.addEventListener('resize', resize);
+    window.addEventListener('blur', clearInput);
+    document.addEventListener('visibilitychange', syncAnimation);
+    document.addEventListener('sectionchange', () => { releaseControl(); });
+    document.addEventListener('lightboxchange', event => { dialogOpen = event.detail.open; syncAnimation(); });
+    motionPreference.addEventListener('change', event => {
+        // A new request for less motion takes effect immediately. Resuming is explicit.
+        if (event.matches) { paused = true; releaseControl(); }
+        syncAnimation();
     });
-    resizeCanvas();
-
-    class Boid {
-        constructor(x, y, vx, vy) {
-            this.x = x;
-            this.y = y;
-            this.vx = vx;
-            this.vy = vy;
-            this.nearestNeighborDistance = Infinity;
-        }
-
-        draw(baseFont, selectedFont) {
-            const emoji = ">";
-            const size = simulationParameters.boidSize;
-            let boidFillStyle = defaultBoidColor;
-
-            // Handle proximity coloring
-            if (proximityColoringEnabled) {
-                const maxDistance = simulationParameters.perceptionRadius; // Use perception radius as max distance
-                boidFillStyle = getProximityColor(this.nearestNeighborDistance, maxDistance, proximityColorCloseRgb, proximityColorFarRgb);
-            }
-
-            // Override with selected boid color if this is the selected boid
-            if (this === youAreHereBoid) {
-                boidFillStyle = selectedBoidColor;
-            }
-
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            const angle = Math.atan2(this.vy, this.vx);
-            ctx.rotate(angle);
-            ctx.font = this === youAreHereBoid ? selectedFont : baseFont;
-            ctx.fillStyle = boidFillStyle;
-            ctx.fillText(emoji, -size, size);
-            ctx.restore();
-        }
-
-        updateManualControl() {
-            const controlForce = 0.3; // How responsive the manual control is
-
-            // Apply keyboard input as forces
-            if (keyboardInput.up) this.vy -= controlForce;
-            if (keyboardInput.down) this.vy += controlForce;
-            if (keyboardInput.left) this.vx -= controlForce;
-            if (keyboardInput.right) this.vx += controlForce;
-
-            // Limit speed
-            const speed = Math.hypot(this.vx, this.vy);
-            if (speed > simulationParameters.maxSpeed * 1.5) { // Allow slightly higher speed for manual control
-                this.vx = (this.vx / speed) * simulationParameters.maxSpeed * 1.5;
-                this.vy = (this.vy / speed) * simulationParameters.maxSpeed * 1.5;
-            }
-
-            // Add some drag to make control feel more natural
-            this.vx *= 0.98;
-            this.vy *= 0.98;
-
-            // Update position
-            this.x += this.vx;
-            this.y += this.vy;
-
-            // Handle boundaries (wrap around)
-            if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
-            if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
-            if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
-            if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
-        }
-
-        update(boids) {
-            // Check if this boid is being manually controlled
-            if (this === youAreHereBoid && manualControlEnabled) {
-                this.nearestNeighborDistance = Infinity;
-                this.updateManualControl();
-                return;
-            }
-
-            let alignment = { x: 0, y: 0 };
-            let cohesion = { x: 0, y: 0 };
-            let separation = { x: 0, y: 0 };
-            let avoidance = { x: 0, y: 0 };
-            let count = 0;
-            let nearestNeighborDistance = Infinity;
-
-            // Keep boids within the boundary
-            if (this.x < simulationParameters.boundary) this.vx += simulationParameters.maxForce * 2;
-            if (this.x > canvas.width - simulationParameters.boundary) this.vx -= simulationParameters.maxForce * 2;
-            if (this.y < simulationParameters.boundary) this.vy += simulationParameters.maxForce * 2;
-            if (this.y > canvas.height - simulationParameters.boundary) this.vy -= simulationParameters.maxForce * 2;
-
-            const neighbors = grid.getPotentialNeighbors(this);
-
-            for (const other of neighbors) {
-                if (other !== this) {
-                    let dx = this.x - other.x;
-                    let dy = this.y - other.y;
-
-                    // Handle wrap-around for distance calculation
-                    if (simulationParameters.wrapAround) {
-                        if (Math.abs(dx) > canvas.width / 2) dx = dx > 0 ? dx - canvas.width : dx + canvas.width;
-                        if (Math.abs(dy) > canvas.height / 2) dy = dy > 0 ? dy - canvas.height : dy + canvas.height;
-                    }
-
-                    const d = Math.hypot(dx, dy);
-                    if (d < nearestNeighborDistance) nearestNeighborDistance = d;
-
-                    if (d < simulationParameters.perceptionRadius) {
-                        alignment.x += other.vx;
-                        alignment.y += other.vy;
-
-                        // For cohesion, we want the position relative to us, handling wrap-around
-                        cohesion.x += other.x; // This needs careful handling with wrap-around, but simple average is often "good enough" for visual boids. 
-                        // Better approach for cohesion with wrap-around is to average the relative offsets and add to current pos.
-                        // Let's stick to simple relative vector for cohesion force:
-                        // Cohesion is steering towards average position of neighbors.
-                        // Average position = (sum of positions) / count.
-                        // Vector to average = Average position - my position.
-
-                        // Let's accumulate the relative position instead to handle wrap-around correctly
-                        // cohesion accumulator will store sum of (other.position) - but we need to adjust other.position for wrap around relative to this.
-                        let otherX = other.x;
-                        let otherY = other.y;
-                        if (simulationParameters.wrapAround) {
-                            if (otherX - this.x > canvas.width / 2) otherX -= canvas.width;
-                            else if (this.x - otherX > canvas.width / 2) otherX += canvas.width;
-
-                            if (otherY - this.y > canvas.height / 2) otherY -= canvas.height;
-                            else if (this.y - otherY > canvas.height / 2) otherY += canvas.height;
-                        }
-
-                        cohesion.x += otherX;
-                        cohesion.y += otherY;
-
-                        if (d < simulationParameters.avoidanceRadius) {
-                            const forceMultiplier = (simulationParameters.avoidanceRadius - d) / simulationParameters.avoidanceRadius;
-                            // avoidance vector is vector AWAY from neighbor: this.pos - other.pos
-                            // We already calculated dx = this.x - other.x (adjusted for wrap)
-                            avoidance.x += dx * forceMultiplier;
-                            avoidance.y += dy * forceMultiplier;
-                        }
-
-                        count++;
-                    }
-                }
-            }
-
-            if (count > 0) {
-                // Calculate average alignment, cohesion, and separation vectors
-                alignment.x /= count;
-                alignment.y /= count;
-                cohesion.x = (cohesion.x / count) - this.x;
-                cohesion.y = (cohesion.y / count) - this.y;
-                separation.x = avoidance.x;
-                separation.y = avoidance.y;
-
-                const alignmentMag = Math.hypot(alignment.x, alignment.y);
-                const cohesionMag = Math.hypot(cohesion.x, cohesion.y);
-                const separationMag = Math.hypot(separation.x, separation.y);
-                const avoidanceMag = Math.hypot(avoidance.x, avoidance.y);
-
-                // Normalize and scale vectors
-                if (alignmentMag !== 0) {
-                    alignment.x = (alignment.x / alignmentMag) * simulationParameters.maxSpeed;
-                    alignment.y = (alignment.y / alignmentMag) * simulationParameters.maxSpeed;
-                }
-
-                if (cohesionMag !== 0) {
-                    cohesion.x = (cohesion.x / cohesionMag) * simulationParameters.maxSpeed;
-                    cohesion.y = (cohesion.y / cohesionMag) * simulationParameters.maxSpeed;
-                }
-
-                if (separationMag !== 0) {
-                    separation.x = (separation.x / separationMag) * simulationParameters.maxSpeed;
-                    separation.y = (separation.y / separationMag) * simulationParameters.maxSpeed;
-                }
-
-                if (avoidanceMag !== 0) {
-                    avoidance.x = (avoidance.x / avoidanceMag) * simulationParameters.maxSpeed;
-                    avoidance.y = (avoidance.y / avoidanceMag) * simulationParameters.maxSpeed;
-                }
-
-                // Apply weights to the vectors
-                alignment.x *= simulationParameters.alignmentWeight;
-                alignment.y *= simulationParameters.alignmentWeight;
-                cohesion.x *= simulationParameters.cohesionWeight;
-                cohesion.y *= simulationParameters.cohesionWeight;
-                separation.x *= simulationParameters.separationWeight;
-                separation.y *= simulationParameters.separationWeight;
-                avoidance.x *= simulationParameters.avoidanceWeight;
-                avoidance.y *= simulationParameters.avoidanceWeight;
-
-                // Calculate acceleration
-                const ax = alignment.x + cohesion.x + separation.x + avoidance.x;
-                const ay = alignment.y + cohesion.y + separation.y + avoidance.y;
-
-                // Apply acceleration
-                this.vx += ax * simulationParameters.maxForce;
-                this.vy += ay * simulationParameters.maxForce;
-
-                // Limit speed
-                const speed = Math.hypot(this.vx, this.vy);
-                if (speed > simulationParameters.maxSpeed) {
-                    this.vx = (this.vx / speed) * simulationParameters.maxSpeed;
-                    this.vy = (this.vy / speed) * simulationParameters.maxSpeed;
-                }
-            }
-            this.nearestNeighborDistance = nearestNeighborDistance;
-
-            // Update position
-            this.x += this.vx;
-            this.y += this.vy;
-
-            if (!simulationParameters.wrapAround) {
-                if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
-                if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
-            } else {
-                if (this.x < -simulationParameters.boidSize) this.x = canvas.width + simulationParameters.boidSize;
-                if (this.x > canvas.width + simulationParameters.boidSize) this.x = -simulationParameters.boidSize;
-                if (this.y < -simulationParameters.boidSize) this.y = canvas.height + simulationParameters.boidSize;
-                if (this.y > canvas.height + simulationParameters.boidSize) this.y = -simulationParameters.boidSize;
-            }
+    pauseButton.addEventListener('click', () => { paused = !paused; syncAnimation(); });
+    function reset() {
+        releaseControl(); youAreHereBoid = null;
+        simulation.reset(Math.floor(Math.random() * 4294967295)); syncAnimation();
+    }
+    window.initBoids = reset;
+    function syncControls() {
+        for (const key of controls) {
+            document.getElementById(key).value = parameters[key];
+            document.getElementById(key + 'Value').textContent = parameters[key];
         }
     }
-
-    const simulationParameters = {
-        numBoids: 200,
-        boidSize: 14,
-        maxSpeed: 3.0,
-        maxForce: 0.1,
-        perceptionRadius: 70,
-        avoidanceRadius: 30,
-        alignmentWeight: 4.5,
-        cohesionWeight: .1,
-        separationWeight: 1.8,
-        avoidanceWeight: 1.0,
-        boundary: 0,
-        wrapAround: true,
-    };
-
-    // Make simulationParameters available globally
-    window.simulationParameters = simulationParameters;
-
-    const boids = [];
-    window.boids = boids; // Make boids array accessible globally for the button
-
-    function initBoids() {
-        boids.length = 0;
-        for (let i = 0; i < simulationParameters.numBoids; i++) {
-            const x = Math.random() * canvas.width;
-            const y = Math.random() * canvas.height;
-            const vx = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
-            const vy = (Math.random() * 2 - 1) * simulationParameters.maxSpeed;
-            boids.push(new Boid(x, y, vx, vy));
-        }
-    }
-
-    // Make initBoids available globally
-    window.initBoids = initBoids;
-
-    const targetFps = 45;
-    const frameInterval = 1000 / targetFps;
-    let lastFrameTime = 0;
-
-    function animate(timestamp = 0) {
-        if (timestamp - lastFrameTime < frameInterval) {
-            requestAnimationFrame(animate);
-            return;
-        }
-        lastFrameTime = timestamp;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Update grid
-        grid.clear();
-        for (const boid of boids) {
-            grid.add(boid);
-        }
-
-        for (const boid of boids) {
-            boid.update(grid);
-        }
-
-        const fontSize = simulationParameters.boidSize * 4;
-        const baseFont = `${fontSize}px ${boidFontFamily}`;
-        const selectedFont = `bold ${fontSize}px ${boidFontFamily}`;
-        for (const boid of boids) {
-            boid.draw(baseFont, selectedFont);
-        }
-
-        requestAnimationFrame(animate);
-    }
-
-    initBoids();
-    animate();
-
-    // Lightbox Logic
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    const lightboxClose = document.getElementById('lightbox-close');
-    const potteryImages = document.querySelectorAll('.pottery-image img');
-
-    potteryImages.forEach(img => {
-        img.addEventListener('click', () => {
-            // Get the highest resolution image from srcset
-            const srcset = img.getAttribute('srcset');
-            let highResSrc = img.src; // Fallback
-
-            if (srcset) {
-                // Parse srcset to find the largest image
-                // Format: "url size, url size, ..."
-                const sources = srcset.split(',').map(src => {
-                    const parts = src.trim().split(' ');
-                    return {
-                        url: parts[0],
-                        width: parseInt(parts[1])
-                    };
-                });
-
-                // Sort by width descending and pick the first one
-                sources.sort((a, b) => b.width - a.width);
-                if (sources.length > 0) {
-                    highResSrc = sources[0].url;
-                }
-            }
-
-            lightboxImg.src = highResSrc;
-            lightbox.classList.add('show');
-            lightbox.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
-            lightboxClose.focus();
+    for (const key of controls) {
+        document.getElementById(key).addEventListener('input', event => {
+            parameters[key] = Number(event.target.value);
+            document.getElementById(key + 'Value').textContent = parameters[key];
+            simulation.capSpeeds(manualControlEnabled ? youAreHereBoid?.id : null);
+            if (key === 'numBoids') reset(); else draw();
         });
+    }
+    document.getElementById('youAreHereButton').addEventListener('click', () => {
+        youAreHereBoid = simulation.boids[Math.floor(Math.random() * simulation.boids.length)];
+        simulation.capSpeeds(manualControlEnabled ? youAreHereBoid.id : null);
+        draw();
     });
-
-    function closeLightbox() {
-        lightbox.classList.remove('show');
-        lightbox.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = ''; // Restore scrolling
-        setTimeout(() => {
-            lightboxImg.src = '';
-        }, 300);
-    }
-
-    if (lightboxClose) {
-        lightboxClose.addEventListener('click', closeLightbox);
-    }
-
-    if (lightbox) {
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) {
-                closeLightbox();
-            }
-        });
-
-        // Close on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && lightbox.classList.contains('show')) {
-                closeLightbox();
-            }
-        });
-    }
-
-    // Parameter controls
-    const controls = [
-        'numBoids', 'boidSize', 'maxSpeed', 'maxForce', 'perceptionRadius', 'avoidanceRadius',
-        'cohesionWeight', 'separationWeight', 'alignmentWeight', 'avoidanceWeight'
-    ];
-
-    controls.forEach(control => {
-        const element = document.getElementById(control);
-        const valueElement = document.getElementById(control + 'Value');
-
-        if (element && valueElement) {
-            // Set initial value display from simulationParameters
-            valueElement.textContent = simulationParameters[control];
-            element.value = simulationParameters[control];
-
-            element.addEventListener('input', (event) => {
-                let value;
-                if (control === 'numBoids' || control === 'perceptionRadius' || control === 'avoidanceRadius' || control === 'boidSize') {
-                    value = parseInt(event.target.value, 10);
-                } else {
-                    value = parseFloat(event.target.value);
-                }
-
-                valueElement.textContent = value;
-
-                if (!isNaN(value)) {
-                    simulationParameters[control] = value;
-                    if (control === 'numBoids') {
-                        initBoids();
-                    }
-
-                    // Easter egg: Show hidden control when self control is at maximum (5)
-                    if (control === 'avoidanceWeight') {
-                        const hiddenControl = document.getElementById('hiddenControl');
-                        if (hiddenControl) {
-                            if (value === 5) {
-                                hiddenControl.style.display = 'block';
-                            } else {
-                                hiddenControl.style.display = 'none';
-                                // Also disable manual control if it was enabled
-                                if (manualControlEnabled) {
-                                    manualControlEnabled = false;
-                                    const manualControlButton = document.getElementById('manualControlButton');
-                                    if (manualControlButton) {
-                                        manualControlButton.textContent = 'Take Control';
-                                        manualControlButton.style.backgroundColor = 'rgba(89, 95, 87, 0.6)';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
+    // This deliberately playful control only unlocks manual flight; it does not
+    // duplicate separation or alter the flock's local interaction rules.
+    selfControl.addEventListener('input', () => {
+        const value = Number(selfControl.value);
+        document.getElementById('selfControlValue').textContent = value;
+        hiddenControl.hidden = value !== Number(selfControl.max);
+        if (hiddenControl.hidden) releaseControl();
+        draw();
     });
+    manualButton.addEventListener('click', () => {
+        if (manualControlEnabled) releaseControl();
+        else {
+            if (hiddenControl.hidden) return;
+            youAreHereBoid ||= simulation.boids[0]; manualControlEnabled = true;
+            manualButton.textContent = 'Release Control'; manualButton.setAttribute('aria-pressed', 'true');
+        }
+        draw();
+    });
+    const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    document.addEventListener('keydown', event => {
+        if (!manualControlEnabled || !running() || !keys[event.key]) return;
+        // Sliders, form fields and tab navigation retain their arrow-key controls.
+        if (event.target.closest('input, select, textarea, [role="tab"], [contenteditable="true"]')) return;
+        keyboardInput[keys[event.key]] = true; event.preventDefault();
+    });
+    document.addEventListener('keyup', event => { if (keys[event.key]) keyboardInput[keys[event.key]] = false; });
+    document.getElementById('proximityColorToggle').addEventListener('change', event => { proximityColoringEnabled = event.target.checked; draw(); });
+    document.getElementById('proximityColorPickerClose').addEventListener('input', event => { proximityColorCloseRgb = hexToRgb(event.target.value); draw(); });
+    document.getElementById('proximityColorPickerFar').addEventListener('input', event => { proximityColorFarRgb = hexToRgb(event.target.value); draw(); });
 
-    // Toggle menu
-    const toggleButton = document.getElementById('toggle-menu-button');
+    const toggle = document.getElementById('toggle-menu-button');
     const menu = document.getElementById('parameter-menu');
-
-    if (toggleButton && menu) {
-        toggleButton.setAttribute('aria-expanded', 'false');
-        toggleButton.addEventListener('click', () => {
-            const isOpen = menu.classList.toggle('show');
-            toggleButton.classList.toggle('panel-open', isOpen);
-            toggleButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        });
+    function closeMenu(returnFocus = false) {
+        menu.hidden = true; toggle.classList.remove('panel-open'); toggle.setAttribute('aria-expanded', 'false');
+        clearInput(); if (returnFocus) toggle.focus();
     }
-
-    // Category navigation
-    const categoryTabs = document.querySelectorAll('.category-tab');
-    const parameterCategories = document.querySelectorAll('.parameter-category');
-
-    categoryTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetCategory = tab.getAttribute('data-category');
-
-            // Remove active class from all tabs and categories
-            categoryTabs.forEach(t => t.classList.remove('active'));
-            parameterCategories.forEach(c => c.classList.remove('active'));
-
-            // Add active class to clicked tab and corresponding category
-            tab.classList.add('active');
-            const targetCategoryElement = document.querySelector(`.parameter-category[data-category="${targetCategory}"]`);
-            if (targetCategoryElement) {
-                targetCategoryElement.classList.add('active');
-            }
+    toggle.addEventListener('click', () => {
+        const opening = menu.hidden;
+        menu.hidden = !opening; menu.classList.toggle('show', opening);
+        toggle.classList.toggle('panel-open', opening); toggle.setAttribute('aria-expanded', String(opening));
+    });
+    menu.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); closeMenu(true); }
+    });
+    const tabs = Array.from(document.querySelectorAll('.category-tab'));
+    function selectTab(tab, focus = false) {
+        tabs.forEach(item => {
+            const selected = item === tab;
+            item.classList.toggle('active', selected); item.setAttribute('aria-selected', String(selected)); item.tabIndex = selected ? 0 : -1;
+            const panel = document.getElementById(item.getAttribute('aria-controls'));
+            panel.hidden = !selected; panel.classList.toggle('active', selected);
+        });
+        if (focus) tab.focus();
+    }
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectTab(tab));
+        tab.addEventListener('keydown', event => {
+            let next;
+            if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+            if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+            if (event.key === 'Home') next = 0;
+            if (event.key === 'End') next = tabs.length - 1;
+            if (next !== undefined) { event.preventDefault(); selectTab(tabs[next], true); }
         });
     });
-} 
+    syncControls(); resize(); syncAnimation();
+    document.fonts?.ready.then(draw);
+}
+
+function initLightbox() {
+    const dialog = document.getElementById('lightbox');
+    const image = document.getElementById('lightbox-img');
+    const close = document.getElementById('lightbox-close');
+    const background = [document.querySelector('nav'), document.querySelector('main'), document.getElementById('simulation-controls')];
+    let trigger = null;
+    let previousOverflow = '';
+    let previousInert = [];
+    document.querySelectorAll('.pottery-image img').forEach(thumbnail => {
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'pottery-open';
+        button.setAttribute('aria-label', 'Enlarge ' + thumbnail.alt); button.setAttribute('aria-haspopup', 'dialog');
+        thumbnail.replaceWith(button); button.append(thumbnail);
+        button.addEventListener('click', () => {
+            trigger = button;
+            const sources = (thumbnail.getAttribute('srcset') || '').split(',').map(source => source.trim().split(/\s+/)).filter(parts => parts[0]);
+            sources.sort((a, b) => parseInt(b[1] || 0, 10) - parseInt(a[1] || 0, 10));
+            image.src = sources[0]?.[0] || thumbnail.src; image.alt = thumbnail.alt;
+            previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            previousInert = background.map(element => element.inert);
+            background.forEach(element => { element.inert = true; });
+            dialog.hidden = false; dialog.classList.add('show'); dialog.setAttribute('aria-hidden', 'false');
+            close.focus(); document.dispatchEvent(new CustomEvent('lightboxchange', { detail: { open: true } }));
+        });
+    });
+    function dismiss() {
+        if (dialog.hidden) return;
+        dialog.hidden = true; dialog.classList.remove('show'); dialog.setAttribute('aria-hidden', 'true');
+        image.removeAttribute('src');
+        document.body.style.overflow = previousOverflow;
+        background.forEach((element, index) => { element.inert = previousInert[index]; });
+        trigger?.focus({ preventScroll: true });
+        document.dispatchEvent(new CustomEvent('lightboxchange', { detail: { open: false } }));
+    }
+    close.addEventListener('click', dismiss);
+    dialog.addEventListener('click', event => { if (event.target === dialog) dismiss(); });
+    dialog.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); dismiss(); }
+        // Close is the only focusable item in this image-only dialog.
+        if (event.key === 'Tab') { event.preventDefault(); close.focus(); }
+    });
+}
